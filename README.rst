@@ -28,6 +28,28 @@ License
     with this program; if not, write to the Free Software Foundation, Inc.,
     51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+
+Directory Structure
+-------------------
+
+  ``src/``
+    Header translations and OOP wrapper.
+
+  ``src/examples/``
+    Example for the direct usage of the OOP wrapper. This directory also has a
+    ``Makefile``.
+
+Build
+-----
+
+::
+
+  $ cd src/examples/
+  $ make
+
+For further information see the comment at the top of `src/examples/testfirmware.pas
+<pas-libusb/blob/master/src/examples/testfirmware.pas>`_.
+
 Usage
 -----
 
