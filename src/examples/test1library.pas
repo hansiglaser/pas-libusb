@@ -1,9 +1,5 @@
 Program Test1Library;
 
-(*Nächste Schritte:
- - neues testprogramm test3controlasync, soll nur einen String holen oder so,
-   dass die Aufmerksamkeit nicht vom wesentlichen abgelenkt wird*)
-
 {$mode objfpc}{$H+}
 
 Uses LibUsb,LibUsbOop,SysUtils;
