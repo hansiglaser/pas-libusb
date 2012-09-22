@@ -160,6 +160,8 @@ Type
   TLibUsbDeviceControlEndpoint = class(TLibUsbDeviceEndpoint)
     Constructor Create(ADevice:TLibUsbDevice); overload;
     Function  ControlMsg(RequestType:Byte;Request:Byte;Value:Word;Index:Word;Const Buf;Length,Timeout:LongInt):LongInt;
+    Function  ControlMsg(RequestType:Byte;Request:Byte;Value:Word;Index:Word;Buf:TDynByteArray;Timeout:LongInt):LongInt;
+    Function  ControlMsg(RequestType:Byte;Request:Byte;Value:Word;Index:Word;Length,Timeout:LongInt):TDynByteArray;
     Function  ControlMsg(RequestType:Byte;Request:Byte;Value:Word;Index:Word;Timeout:LongInt):LongInt;
     Function  GetDescriptor(DescType:Byte;DescIndex:Byte;Out Data;Length:Integer) : Integer;
     Function  GetString     (DescIndex:Byte;LangID:Word;Out Data;Length:Integer) : Integer;
@@ -171,26 +173,28 @@ Type
 
   TLibUsbBulkOutEndpoint = class(TLibUsbInterfaceEndpoint)
     Function Send(Const Buf;Length,Timeout:LongInt):LongInt;
-    Function Send(St:String;Timeout:LongInt):LongInt;
+    Function Send(Buf:TDynByteArray;Timeout:LongInt):LongInt;
   End;
 
   { TLibUsbBulkInEndpoint }
 
   TLibUsbBulkInEndpoint = class(TLibUsbInterfaceEndpoint)
     Function Recv(Out Buf;Length:LongInt;Timeout:LongInt) : LongInt;
+    Function Recv(Length:LongInt;Timeout:LongInt):TDynByteArray;
   End;
 
   { TLibUsbInterruptOutEndpoint }
 
   TLibUsbInterruptOutEndpoint = class(TLibUsbInterfaceEndpoint)
     Function Send(Const Buf;Length,Timeout:LongInt):LongInt;
-    Function Send(St:String;Timeout:LongInt):LongInt;
+    Function Send(Buf:TDynByteArray;Timeout:LongInt):LongInt;
   End;
 
   { TLibUsbInterruptInEndpoint }
 
   TLibUsbInterruptInEndpoint = class(TLibUsbInterfaceEndpoint)
     Function Recv(Out Buf;Length:LongInt;Timeout:LongInt) : LongInt;
+    Function Recv(Length:LongInt;Timeout:LongInt):TDynByteArray;
   End;
 
   { TLibUsbTransfer }
@@ -579,6 +583,13 @@ Begin
   inherited Destroy;
 End;
 
+(**
+ * Request the current device configuration
+ *
+ * Returns: A zero value means the device is not configured and a non-zero
+ * value indicates the device is configured. It is the value of
+ * bConfigurationValue of the active configuration descriptor.
+ *)
 Function TLibUsbDevice.GetConfiguration : Integer;
 Begin
   ELibUsb.Check(libusb_get_configuration(FHandle,Result),'GetConfiguration');
@@ -703,6 +714,19 @@ Begin
   Result := libusb_control_transfer(FDevice.Handle,RequestType,Request,Value,Index,@Buf,Length,Timeout);
 End;
 
+Function TLibUsbDeviceControlEndpoint.ControlMsg(RequestType:Byte;Request:Byte;Value:Word;Index:Word;Buf:TDynByteArray;Timeout:LongInt):LongInt;
+Begin
+  Result := libusb_control_transfer(FDevice.Handle,RequestType,Request,Value,Index,@(Buf[0]),Length(Buf),Timeout);
+End;
+
+Function TLibUsbDeviceControlEndpoint.ControlMsg(RequestType:Byte;Request:Byte;Value:Word;Index:Word;Length,Timeout:LongInt):TDynByteArray;
+Begin
+  // allocate buffer
+  SetLength(Result,Length);
+  // set buffer length to actual number of received bytes
+  SetLength(Result,ELibUsb.Check(libusb_control_transfer(FDevice.Handle,RequestType,Request,Value,Index,@(Result[0]),Length,Timeout),'ControlMsg'));
+End;
+
 Function TLibUsbDeviceControlEndpoint.ControlMsg(RequestType:Byte;Request:Byte;Value:Word;Index:Word;Timeout:LongInt):LongInt;
 Begin
   Result := libusb_control_transfer(FDevice.Handle,RequestType,Request,Value,Index,Nil,0,Timeout);
@@ -739,10 +763,10 @@ Begin
   if Result = 0 then Result := Length;
 End;
 
-Function TLibUsbBulkOutEndpoint.Send(St:String;Timeout:LongInt):LongInt;
+Function TLibUsbBulkOutEndpoint.Send(Buf:TDynByteArray;Timeout:LongInt):LongInt;
 Var Transferred : Integer;
 Begin
-  Result := libusb_bulk_transfer(FDevice.Handle,FEndpoint,@St[1],Length(St),Transferred,Timeout);
+  Result := libusb_bulk_transfer(FDevice.Handle,FEndpoint,@(Buf[0]),Length(Buf),Transferred,Timeout);
   if Result = 0 then Result := Transferred;
 End;
 
@@ -754,6 +778,14 @@ Begin
   if Result = 0 then Result := Length;
 End;
 
+Function TLibUsbBulkInEndpoint.Recv(Length:LongInt;Timeout:LongInt):TDynByteArray;
+Begin
+  // allocate buffer
+  SetLength(Result,Length);
+  // set buffer length to actual number of received bytes
+  SetLength(Result,ELibUsb.Check(libusb_bulk_transfer(FDevice.Handle,FEndpoint,@(Result[0]),Length,Length,Timeout),'Recv'));
+End;
+
 { TLibUsbInterruptOutEndpoint }
 
 Function TLibUsbInterruptOutEndpoint.Send(Const Buf;Length,Timeout:LongInt):LongInt;
@@ -762,10 +794,10 @@ Begin
   if Result = 0 then Result := Length;
 End;
 
-Function TLibUsbInterruptOutEndpoint.Send(St:String;Timeout:LongInt):LongInt;
+Function TLibUsbInterruptOutEndpoint.Send(Buf:TDynByteArray;Timeout:LongInt):LongInt;
 Var Transferred : Integer;
 Begin
-  Result := libusb_interrupt_transfer(FDevice.Handle,FEndpoint,@St[1],Length(St),Transferred,Timeout);
+  Result := libusb_interrupt_transfer(FDevice.Handle,FEndpoint,@(Buf[0]),Length(Buf),Transferred,Timeout);
   if Result = 0 then Result := Transferred;
 End;
 
@@ -775,6 +807,14 @@ Function TLibUsbInterruptInEndpoint.Recv(Out Buf;Length:LongInt;Timeout:LongInt)
 Begin
   Result := libusb_interrupt_transfer(FDevice.Handle,FEndpoint,@Buf,Length,Length,Timeout);
   if Result = 0 then Result := Length;
+End;
+
+Function TLibUsbInterruptInEndpoint.Recv(Length:LongInt;Timeout:LongInt):TDynByteArray;
+Begin
+  // allocate buffer
+  SetLength(Result,Length);
+  // set buffer length to actual number of received bytes
+  SetLength(Result,ELibUsb.Check(libusb_interrupt_transfer(FDevice.Handle,FEndpoint,@(Result[0]),Length,Length,Timeout),'Recv'));
 End;
 
 { TLibUsbTransfer }
