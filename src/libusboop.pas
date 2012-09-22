@@ -55,9 +55,9 @@ Type
     // device list
           Function  GetDeviceList(Out List:PPlibusb_device) : cssize;
     Class Procedure FreeDeviceList(List:PPlibusb_device;UnrefDevices:Boolean=false);
-          Function  FindDevices(MatchFunc :TLibUsbDeviceMatchMethod;           Timeout:Integer=0) : TLibUsbDeviceArray;
-          Function  FindDevices(MatchClass:TLibUsbDeviceMatchClass;            Timeout:Integer=0) : TLibUsbDeviceArray;
-          Function  FindDevices(MatchFunc :TLibUsbDeviceMatchFunc;Data:Pointer;Timeout:Integer=0) : TLibUsbDeviceArray;
+          Function  FindDevices(MatchFunc :TLibUsbDeviceMatchMethod;                  Timeout:Integer=0) : TLibUsbDeviceArray;
+          Function  FindDevices(MatchClass:TLibUsbDeviceMatchClass;CFree:Boolean=True;Timeout:Integer=0) : TLibUsbDeviceArray;
+          Function  FindDevices(MatchFunc :TLibUsbDeviceMatchFunc;Data:Pointer;       Timeout:Integer=0) : TLibUsbDeviceArray;
     // device handling
     Class Function  RefDevice(dev:Plibusb_device):Plibusb_device;
     Class Procedure UnrefDevice(dev:Plibusb_device);
@@ -433,15 +433,16 @@ End;
  *
  * @param MatchClass  TLibUsbDeviceMatchClass descendent with an overridden
  *                    Match method to compare a given device with a criterion.
- *                    This class will be Free()d!
+ * @param Free        if true (the default), MatchClass will be Free()d
  * @param Timeout     if > 0, the search will be retried Timeout milliseconds
  *
  * @returns dynamic array of found devices
  *)
-Function TLibUsbContext.FindDevices(MatchClass : TLibUsbDeviceMatchClass;Timeout:Integer=0) : TLibUsbDeviceArray;
+Function TLibUsbContext.FindDevices(MatchClass : TLibUsbDeviceMatchClass;CFree:Boolean=True;Timeout:Integer=0) : TLibUsbDeviceArray;
 Begin
   Result := FindDevices(@MatchClass.Match,Timeout);
-  MatchClass.Free;
+  if CFree then
+    MatchClass.Free;
 End;
 
 (**
@@ -455,7 +456,7 @@ End;
  *)
 Function TLibUsbContext.FindDevices(MatchFunc : TLibUsbDeviceMatchFunc; Data : Pointer;Timeout:Integer=0) : TLibUsbDeviceArray;
 Begin
-  Result := FindDevices(TDeviceFuncMatcher.Create(MatchFunc,Data),Timeout);
+  Result := FindDevices(TDeviceFuncMatcher.Create(MatchFunc,Data),true,Timeout);
 End;
 
 Class Function TLibUsbContext.RefDevice(dev : Plibusb_device) : Plibusb_device;
