@@ -314,9 +314,11 @@ Type
     Constructor Create(AEndpoint:TLibUsbInterruptOutEndpoint);
   End;
 
+  EUSBError = class(Exception);
+
   { ELibUsb }
 
-  ELibUsb = class(Exception)
+  ELibUsb = class(EUSBError)
   private
     FError : Integer;
     Function GetErrorStr : PChar;
