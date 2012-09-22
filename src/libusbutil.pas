@@ -109,9 +109,14 @@ Begin
     // don't even search for unconfigured devices
     Timeout := 300;
 
-  { find configured devices }
+  // find configured devices
   if Length(Devs) = 0 then
-    Devs := AContext.FindDevices(MatchConfigured,true,Timeout);
+    Devs := AContext.FindDevices(MatchConfigured,false,Timeout);
+
+  // before any exceptions, free matcher classes
+  MatchUnconfigured.Free;
+  MatchConfigured.Free;
+
   if Length(Devs) = 0 then
     raise EUSBError.Create('No configured devices found.')
   else if Length(Devs) > 1 then
