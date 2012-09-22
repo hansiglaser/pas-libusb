@@ -112,7 +112,7 @@ Type
   TLibUsbInterface = class
   private
     FDevice     : TLibUsbDevice;
-    FNum        : Integer;
+    FInterface  : Integer;
     FAltSetting : Integer;
     Procedure Claim;
     Procedure Release;
@@ -120,7 +120,7 @@ Type
     Procedure DetachKernelDriver;
     Procedure AttachKernelDriver;
   public
-    Constructor Create(ADevice:TLibUsbDevice;ANum:Integer);
+    Constructor Create(ADevice:TLibUsbDevice;AInterface:Integer);
     Destructor Destroy; override;
     Procedure SetAltSetting(AAltSetting:Integer);
   End;
@@ -596,11 +596,11 @@ End;
 
 { TLibUsbInterface }
 
-Constructor TLibUsbInterface.Create(ADevice : TLibUsbDevice; ANum : Integer);
+Constructor TLibUsbInterface.Create(ADevice : TLibUsbDevice; AInterface : Integer);
 Begin
   inherited Create;
   FDevice     := ADevice;
-  FNum        := ANum;
+  FInterface  := AInterface;
   FAltSetting := -1;   // unset
 
   Claim;
@@ -615,14 +615,14 @@ End;
 Procedure TLibUsbInterface.SetAltSetting(AAltSetting : Integer);
 Begin
   FAltSetting := AAltSetting;
-  ELibUsb.Check(libusb_set_interface_alt_setting(FDevice.FHandle,FNum,FAltSetting),'SetAltSetting');
+  ELibUsb.Check(libusb_set_interface_alt_setting(FDevice.FHandle,FInterface,FAltSetting),'SetAltSetting');
 End;
 
 Procedure TLibUsbInterface.Claim;
 Var Ret : Integer;
 Begin
   { claim interface }
-  Ret := libusb_claim_interface(FDevice.FHandle,FNum);
+  Ret := libusb_claim_interface(FDevice.FHandle,FInterface);
   if Ret >= 0 then
     Exit;   // everything ok
   if Ret <> LIBUSB_ERROR_BUSY then
@@ -630,31 +630,31 @@ Begin
   { device or resource busy, this is probably because the interface is
     clamied by another driver, e.g. the kernel }
   if not IsKernelDriverActive then
-    ELibUsb.CreateFmt(Ret,'Couldn''t claim interface %d but there is no kernel driver.',[FNum]);
+    ELibUsb.CreateFmt(Ret,'Couldn''t claim interface %d but there is no kernel driver.',[FInterface]);
   { detach driver }
   DetachKernelDriver;
   { claim again }
-  ELibUsb.Check(libusb_claim_interface(FDevice.FHandle,FNum),'2nd Claim');
+  ELibUsb.Check(libusb_claim_interface(FDevice.FHandle,FInterface),'2nd Claim');
 End;
 
 Procedure TLibUsbInterface.Release;
 Begin
-  ELibUsb.Check(libusb_release_interface(FDevice.FHandle,FNum),'Release');
+  ELibUsb.Check(libusb_release_interface(FDevice.FHandle,FInterface),'Release');
 End;
 
 Function TLibUsbInterface.IsKernelDriverActive : Boolean;
 Begin
-  Result := (ELibUsb.Check(libusb_kernel_driver_active(FDevice.FHandle,FNum),'IsKernelDriverActive') > 0);
+  Result := (ELibUsb.Check(libusb_kernel_driver_active(FDevice.FHandle,FInterface),'IsKernelDriverActive') > 0);
 End;
 
 Procedure TLibUsbInterface.DetachKernelDriver;
 Begin
-  ELibUsb.Check(libusb_detach_kernel_driver(FDevice.FHandle,FNum),'DetachKernelDriver');
+  ELibUsb.Check(libusb_detach_kernel_driver(FDevice.FHandle,FInterface),'DetachKernelDriver');
 End;
 
 Procedure TLibUsbInterface.AttachKernelDriver;
 Begin
-  ELibUsb.Check(libusb_attach_kernel_driver(FDevice.FHandle,FNum),'AttachKernelDriver');
+  ELibUsb.Check(libusb_attach_kernel_driver(FDevice.FHandle,FInterface),'AttachKernelDriver');
 End;
 
 { TLibUsbEndpoint }
