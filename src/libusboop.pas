@@ -92,7 +92,8 @@ Type
     // polling
           Function  GetPollFDs:PPlibusb_pollfd;     (* Const before type ignored *)
           Procedure SetPollFDNotifiers(added_cb:libusb_pollfd_added_cb; removed_cb:libusb_pollfd_removed_cb; user_data:pointer);
-
+    // special functions
+          Function  GetSerialNumber(dev : Plibusb_device) : String;
     property Context : Plibusb_context read FContext;
   End;
 
@@ -627,6 +628,25 @@ End;
 Procedure TLibUsbContext.SetPollFDNotifiers(added_cb : libusb_pollfd_added_cb;removed_cb : libusb_pollfd_removed_cb; user_data : pointer);
 Begin
   libusb_set_pollfd_notifiers(FContext,added_cb,removed_cb,user_data);
+End;
+
+Function TLibUsbContext.GetSerialNumber(dev : Plibusb_device) : String;
+Var Handle : Plibusb_device_handle;
+    DeviceDescriptor : libusb_device_descriptor;
+    iSerialNumber : Byte;
+Begin
+  Result := '';
+  DeviceDescriptor := GetDeviceDescriptor(dev);
+  iSerialNumber := DeviceDescriptor.iSerialNumber;
+  if iSerialNumber = 0 then
+    Exit('');
+  ELibUsb.Check(libusb_open(dev,Handle),'Open');
+  SetLength(Result,256);
+  try
+    SetLength(Result,ELibUsb.Check(libusb_get_string_descriptor_ascii(Handle,iSerialNumber,@Result[1],Length(Result)),'GetString'));
+  Finally
+    libusb_close(Handle);
+  End;
 End;
 
 { TLibUsbDevice }
