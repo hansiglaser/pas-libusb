@@ -89,6 +89,8 @@ Type
     property Context : Plibusb_context read FContext;
   End;
 
+  TLibUsbDeviceControlEndpoint = class;  // forward declaration
+
   { TLibUsbDevice }
 
   TLibUsbDevice = class   { this corresponds to libusb_device_handle }
@@ -96,6 +98,7 @@ Type
     FContext : TLibUsbContext;
     FDevice  : Plibusb_device;
     FHandle  : Plibusb_device_handle;
+    FControl : TLibUsbDeviceControlEndpoint;
   public
     Constructor Create(AContext:TLibUsbContext;ADevice:Plibusb_device);
     Constructor Create(AContext:TLibUsbContext;AVID,APID:Word);
@@ -103,8 +106,10 @@ Type
     Function  GetConfiguration : Integer;
     Procedure SetConfiguration(AConfiguration : Integer);
     Procedure Reset;
-    property Device : Plibusb_device read FDevice;
-    property Handle : Plibusb_device_handle read FHandle;
+    Function IsPresent : Boolean;
+    property Device  : Plibusb_device read FDevice;
+    property Handle  : Plibusb_device_handle read FHandle;
+    property Control : TLibUsbDeviceControlEndpoint read FControl;
   End;
 
   { TLibUsbInterface }
@@ -565,6 +570,7 @@ Begin
   FContext := AContext;
   FDevice  := ADevice;
   ELibUsb.Check(libusb_open(FDevice,FHandle),'Open');
+  FControl := TLibUsbDeviceControlEndpoint.Create(Self);
 End;
 
 Constructor TLibUsbDevice.Create(AContext : TLibUsbContext; AVID, APID : Word);
@@ -575,10 +581,12 @@ Begin
   if FHandle = Nil then
     raise ELibUsb.CreateFmt(Integer(LIBUSB_ERROR_NO_DEVICE),'Couldn''t find or open device %.4x:%.4x',[AVID,APID]);
   FDevice := libusb_get_device(FHandle);
+  FControl := TLibUsbDeviceControlEndpoint.Create(Self);
 End;
 
 Destructor TLibUsbDevice.Destroy;
 Begin
+  FControl.Free;
   libusb_close(FHandle);
   inherited Destroy;
 End;
@@ -603,6 +611,24 @@ End;
 Procedure TLibUsbDevice.Reset;
 Begin
   ELibUsb.Check(libusb_reset_device(FHandle),'Reset');
+End;
+
+(**
+ * Check if the device is still connected
+ *)
+Function TLibUsbDevice.IsPresent:Boolean;
+Var Status : Word;
+    R      : Integer;
+Begin
+  R := FControl.ControlMsg(
+    { bmRequestType } LIBUSB_ENDPOINT_IN or LIBUSB_REQUEST_TYPE_STANDARD or LIBUSB_RECIPIENT_DEVICE,
+    { bRequest      } LIBUSB_REQUEST_GET_STATUS,
+    { wValue        } 0,
+    { wIndex        } 0,
+    { Buf           } Result,
+    { wLength       } 2,
+    { Timeout       } 40);
+  Result := (R = 2);
 End;
 
 { TLibUsbInterface }
