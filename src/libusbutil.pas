@@ -8,6 +8,28 @@ Uses LibUsb,LibUsbOop;
 
 Type
 
+  { TLibUsbDeviceMatchVidPid }
+
+  TLibUsbDeviceMatchVidPid = class(TLibUsbDeviceMatchClass)
+  protected
+    FContext : TLibUsbContext;
+    FVid     : Word;
+    FPid     : Word;
+  public
+    Function Match(Dev:Plibusb_device) : Boolean; override;
+    Constructor Create(AContext:TLibUsbContext;AVid,APid:Word);
+  End;
+
+  { TLibUsbDeviceMatchVidPidSerial }
+
+  TLibUsbDeviceMatchVidPidSerial = class(TLibUsbDeviceMatchVidPid)
+  protected
+    FSerial : String;
+  public
+    Function Match(Dev:Plibusb_device) : Boolean; override;
+    Constructor Create(AContext:TLibUsbContext;AVid,APid:Word;ASerial:String);
+  End;
+
   { TLibUsbDeviceWithFirmware }
 
   TLibUsbDeviceWithFirmware = class(TLibUsbDevice)
@@ -19,6 +41,36 @@ Type
 
 Implementation
 Uses SysUtils;
+
+{ TLibUsbDeviceMatchVidPid }
+
+Function TLibUsbDeviceMatchVidPid.Match(Dev : Plibusb_device) : Boolean;
+Var DeviceDescriptor : libusb_device_descriptor;
+Begin
+  DeviceDescriptor := FContext.GetDeviceDescriptor(dev);
+  Result := ((DeviceDescriptor.idVendor = FVid) and (DeviceDescriptor.idProduct = FPid));
+End;
+
+Constructor TLibUsbDeviceMatchVidPid.Create(AContext : TLibUsbContext; AVid, APid : Word);
+Begin
+  inherited Create;
+  FContext := AContext;
+  FVid     := AVid;
+  FPid     := APid;
+End;
+
+{ TLibUsbDeviceMatchVidPidSerial }
+
+Function TLibUsbDeviceMatchVidPidSerial.Match(Dev : Plibusb_device) : Boolean;
+Begin
+  Result := inherited Match(Dev) and (FContext.GetSerialNumber(Dev) = FSerial);
+End;
+
+Constructor TLibUsbDeviceMatchVidPidSerial.Create(AContext : TLibUsbContext; AVid, APid : Word; ASerial : String);
+Begin
+  inherited Create(AContext,AVid,APid);
+  FSerial := ASerial;
+End;
 
 { TLibUsbDeviceWithFirmware }
 
