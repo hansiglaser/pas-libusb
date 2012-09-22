@@ -51,8 +51,6 @@ Type
     Class Procedure FreeDeviceList(List:PPlibusb_device;UnrefDevices:Boolean=false);
           Function  FindDevices(MatchFunc:TLibUsbDeviceMatchMethod           ) : TLibUsbDeviceArray;
           Function  FindDevices(MatchFunc:TLibUsbDeviceMatchFunc;Data:Pointer) : TLibUsbDeviceArray;
-          Function  FindDevice (MatchFunc:TLibUsbDeviceMatchMethod           ) : Plibusb_device;
-          Function  FindDevice (MatchFunc:TLibUsbDeviceMatchFunc;Data:Pointer) : Plibusb_device;
     // device handling
     Class Function  RefDevice(dev:Plibusb_device):Plibusb_device;
     Class Procedure UnrefDevice(dev:Plibusb_device);
@@ -420,29 +418,6 @@ Var FuncMatcher : TDeviceFuncMatcher;
 Begin
   FuncMatcher := TDeviceFuncMatcher.Create(MatchFunc,Data);
   Result := FindDevices(@FuncMatcher.Match);
-  FuncMatcher.Free;
-End;
-
-Function TLibUsbContext.FindDevice(MatchFunc : TLibUsbDeviceMatchMethod) : Plibusb_device;
-Var DevList  : PPlibusb_device;
-    DevCount : Integer;
-    I        : Integer;
-Begin
-  DevCount := ELibUsb.Check(GetDeviceList(DevList),'GetDeviceList');
-  For I := 0 to DevCount-1 do
-    if MatchFunc(DevList[I]) then
-      Begin
-        Result := DevList[I];
-        break;
-      End;
-  FreeDeviceList(DevList);
-End;
-
-Function TLibUsbContext.FindDevice(MatchFunc : TLibUsbDeviceMatchFunc; Data : Pointer) : Plibusb_device;
-Var FuncMatcher : TDeviceFuncMatcher;
-Begin
-  FuncMatcher := TDeviceFuncMatcher.Create(MatchFunc,Data);
-  Result := FindDevice(@FuncMatcher.Match);
   FuncMatcher.Free;
 End;
 
