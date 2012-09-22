@@ -30,6 +30,9 @@ Uses
 Type
 
   TDynByteArray = Array of Byte;
+  TLibUsbDeviceArray       = Array of Plibusb_device;
+  TLibUsbDeviceMatchMethod = Function(Dev:Plibusb_device) : Boolean of object;
+  TLibUsbDeviceMatchFunc   = Function(Dev:Plibusb_device;Data:Pointer) : Boolean;
 
   { TLibUsbContext }
 
@@ -43,8 +46,14 @@ Type
     Class Function  GetVersion : Plibusb_version;
     Class Function  HasCapability(Capability : Cardinal) : Boolean;
           Function  ErrorName(ErrorCode : Integer) : PChar;
+    // device list
           Function  GetDeviceList(Out List:PPlibusb_device) : cssize;
     Class Procedure FreeDeviceList(List:PPlibusb_device;UnrefDevices:Boolean=false);
+          Function  FindDevices(MatchFunc:TLibUsbDeviceMatchMethod           ) : TLibUsbDeviceArray;
+          Function  FindDevices(MatchFunc:TLibUsbDeviceMatchFunc;Data:Pointer) : TLibUsbDeviceArray;
+          Function  FindDevice (MatchFunc:TLibUsbDeviceMatchMethod           ) : Plibusb_device;
+          Function  FindDevice (MatchFunc:TLibUsbDeviceMatchFunc;Data:Pointer) : Plibusb_device;
+    // device handling
     Class Function  RefDevice(dev:Plibusb_device):Plibusb_device;
     Class Procedure UnrefDevice(dev:Plibusb_device);
     Class Function  GetDeviceDescriptor(dev : Plibusb_device) : libusb_device_descriptor;
@@ -61,7 +70,7 @@ Type
     Class Function  GetDeviceSpeed(dev : Plibusb_device) : Byte;
     Class Function  GetMaxPacketSize(dev : Plibusb_device; endpoint : Byte) : Integer;
     Class Function  GetMaxIsoPacketSize(dev : Plibusb_device; endpoint : Byte) : Integer;
-          // locking
+    // locking
           Function  TryLockEvents : Integer;
           Procedure LockEvents;
           Procedure UnlockEvents;
@@ -72,7 +81,7 @@ Type
           Function  WaitForEvent(tv:Ptimeval) : Integer;
           Function  WaitForEvent : Integer;
           Function  WaitForEvent(Sec,USec:Integer) : Integer;
-          // event handling and timeout
+    // event handling and timeout
           Function  HandleEvents : Integer;
           Function  HandleEvents(tv:Ptimeval) : Integer;
           Function  HandleEvents(Sec,USec:Integer) : Integer;
@@ -82,7 +91,7 @@ Type
           Function  HandleEventsLocked( tv:Ptimeval) : Integer;
           Function  PollfdsHandleTimeouts : Integer;
           Function  GetNextTimeout( tv:Ptimeval) : Integer;
-          // polling
+    // polling
           Function  GetPollFDs:PPlibusb_pollfd;     (* Const before type ignored *)
           Procedure SetPollFDNotifiers(added_cb:libusb_pollfd_added_cb; removed_cb:libusb_pollfd_removed_cb; user_data:pointer);
 
@@ -317,6 +326,26 @@ Type
 Implementation
 Uses CTypes;
 
+(**
+ * Helper class to use TLibUsbDeviceMatchFunc instead of TLibUsbDeviceMatchMethod
+ *)
+Type
+  TDeviceFuncMatcher = class
+    FFunc : TLibUsbDeviceMatchFunc;
+    FData : Pointer;
+    Constructor Create(AFunc:TLibUsbDeviceMatchFunc;AData:Pointer);
+    Function    Match(Dev:Plibusb_device) : Boolean;
+  End;
+Constructor TDeviceFuncMatcher.Create(AFunc:TLibUsbDeviceMatchFunc;AData:Pointer);
+Begin
+  FFunc := AFunc;
+  FData := AData;
+End;
+Function TDeviceFuncMatcher.Match(Dev:Plibusb_device):Boolean;
+Begin
+  Result := FFunc(Dev,FData);
+End;
+
 { TLibUsbContext }
 
 Constructor TLibUsbContext.Create;
@@ -359,6 +388,62 @@ End;
 Class Procedure TLibUsbContext.FreeDeviceList(List : PPlibusb_device; UnrefDevices : Boolean);
 Begin
   libusb_free_device_list(List,Integer(UnrefDevices));
+End;
+
+
+
+(**
+ * Find USB Devices according to MatchFunc
+ *
+ * @param MatchFunc  method to compare a given device with a criterion
+ *
+ * @returns dynamic array of found devices
+ *)
+Function TLibUsbContext.FindDevices(MatchFunc : TLibUsbDeviceMatchMethod) : TLibUsbDeviceArray;
+Var DevList  : PPlibusb_device;
+    DevCount : Integer;
+    I        : Integer;
+Begin
+  DevCount := ELibUsb.Check(GetDeviceList(DevList),'GetDeviceList');
+  SetLength(Result,0);
+  For I := 0 to DevCount-1 do
+    if MatchFunc(DevList[I]) then
+      Begin
+        SetLength(Result,Length(Result)+1);
+        Result[Length(Result)-1] := DevList[I];
+      End;
+  FreeDeviceList(DevList);
+End;
+
+Function TLibUsbContext.FindDevices(MatchFunc : TLibUsbDeviceMatchFunc; Data : Pointer) : TLibUsbDeviceArray;
+Var FuncMatcher : TDeviceFuncMatcher;
+Begin
+  FuncMatcher := TDeviceFuncMatcher.Create(MatchFunc,Data);
+  Result := FindDevices(@FuncMatcher.Match);
+  FuncMatcher.Free;
+End;
+
+Function TLibUsbContext.FindDevice(MatchFunc : TLibUsbDeviceMatchMethod) : Plibusb_device;
+Var DevList  : PPlibusb_device;
+    DevCount : Integer;
+    I        : Integer;
+Begin
+  DevCount := ELibUsb.Check(GetDeviceList(DevList),'GetDeviceList');
+  For I := 0 to DevCount-1 do
+    if MatchFunc(DevList[I]) then
+      Begin
+        Result := DevList[I];
+        break;
+      End;
+  FreeDeviceList(DevList);
+End;
+
+Function TLibUsbContext.FindDevice(MatchFunc : TLibUsbDeviceMatchFunc; Data : Pointer) : Plibusb_device;
+Var FuncMatcher : TDeviceFuncMatcher;
+Begin
+  FuncMatcher := TDeviceFuncMatcher.Create(MatchFunc,Data);
+  Result := FindDevice(@FuncMatcher.Match);
+  FuncMatcher.Free;
 End;
 
 Class Function TLibUsbContext.RefDevice(dev : Plibusb_device) : Plibusb_device;
