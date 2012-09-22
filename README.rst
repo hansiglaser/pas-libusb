@@ -81,7 +81,9 @@ Other Projects
 TODO
 ----
 
- - EZ-USB / DeviceWithFirmware
+ - TLibUsbDeviceEZUSB: care about changes:
+    - do SetConfiguration manually
+    - LoadMem issues ELibUsb instead of ELibUsb
  - adapt testfirmware.pas und mydevice.pas to new libusb
  - programming model: don't derive from TLibUsbDevice but from
    TLibUsbInterface! problem: EP0 doesn't belong to an interface but to the

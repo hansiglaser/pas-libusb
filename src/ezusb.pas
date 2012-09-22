@@ -21,16 +21,14 @@
 Unit EZUSB;
 
 Interface
-Uses LibUSB,USB,IntelHex;
+Uses LibUsb,LibUsbOop,IntelHex;
 
 Type
 
-  { TUSBDeviceEZUSB }
+  { TLibUsbDeviceEZUSB }
 
-  TUSBDeviceEZUSB = class(TUSBDevice)
+  TLibUsbDeviceEZUSB = class(TLibUsbDevice)
   public
-    Constructor Create(ADev:PUSBDevice);
-    Constructor Create(AidVendor,AidProduct:Word);
     Function ReadMem (Pos:LongInt;Out   Data;Length:LongInt):LongInt;
     Function WriteMem(Pos:LongInt;Const Data;Length:LongInt):LongInt;
     Function ResetCPU(ResetBit:Byte) : LongInt;
@@ -48,17 +46,7 @@ Uses SysUtils,Errors;
 Const
   EZUSBUnconfiguredConfiguration = 1;
 
-{ TUSBDeviceEZUSB }
-
-Constructor TUSBDeviceEZUSB.Create(ADev:PUSBDevice);
-Begin
-  inherited Create(ADev,EZUSBUnconfiguredConfiguration);
-End;
-
-Constructor TUSBDeviceEZUSB.Create(AidVendor, AidProduct : Word);
-Begin
-  inherited Create(AidVendor,AidProduct,EZUSBUnconfiguredConfiguration);
-End;
+{ TLibUsbDeviceEZUSB }
 
 (**
  * Read "Length" bytes to "Data" at memory position "Pos"
@@ -69,9 +57,16 @@ End;
  * returns: >0 .... count of bytes written
  *          <0 .... error number
  *)
-Function TUSBDeviceEZUSB.ReadMem(Pos:LongInt;Out Data;Length:LongInt) : LongInt;
+Function TLibUsbDeviceEZUSB.ReadMem(Pos:LongInt;Out Data;Length:LongInt) : LongInt;
 Begin
-  Result := FControl.ControlMsg(USB_ENDPOINT_IN or USB_RECIP_DEVICE or USB_TYPE_VENDOR,ANCHOR_LOAD_INTERNAL,Pos,0,Data,Length,300);
+  Result := FControl.ControlMsg(
+    { bmRequestType } LIBUSB_ENDPOINT_IN or LIBUSB_REQUEST_TYPE_VENDOR or LIBUSB_RECIPIENT_DEVICE,
+    { bRequest      } ANCHOR_LOAD_INTERNAL,
+    { wValue        } Pos,
+    { wIndex        } 0,
+    { Buf           } Data,
+    { wLength       } Length,
+    { Timeout       } 300);
 End;
 
 (**
@@ -83,28 +78,35 @@ End;
  * returns: >0 .... count of bytes written
  *          <0 .... error number
  *)
-Function TUSBDeviceEZUSB.WriteMem(Pos:LongInt;Const Data;Length:LongInt) : LongInt;
+Function TLibUsbDeviceEZUSB.WriteMem(Pos:LongInt;Const Data;Length:LongInt) : LongInt;
 Begin
-  Result := FControl.ControlMsg(USB_ENDPOINT_OUT or USB_RECIP_DEVICE or USB_TYPE_VENDOR,ANCHOR_LOAD_INTERNAL,Pos,0,Data,Length,300);
+  Result := FControl.ControlMsg(
+    { bmRequestType } LIBUSB_ENDPOINT_Out or LIBUSB_REQUEST_TYPE_VENDOR or LIBUSB_RECIPIENT_DEVICE,
+    { bRequest      } ANCHOR_LOAD_INTERNAL,
+    { wValue        } Pos,
+    { wIndex        } 0,
+    { Buf           } Data,
+    { wLength       } Length,
+    { Timeout       } 300);
 End;
 
-Function TUSBDeviceEZUSB.ResetCPU(ResetBit:Byte) : LongInt;
+Function TLibUsbDeviceEZUSB.ResetCPU(ResetBit:Byte) : LongInt;
 Begin
   Result := WriteMem(CPUCS_REG,ResetBit,1);
 End;
 
-Function TUSBDeviceEZUSB.LoadMem(HexRecord:PIntelHexRecord):LongInt;
+Function TLibUsbDeviceEZUSB.LoadMem(HexRecord:PIntelHexRecord):LongInt;
 Begin
   While (HexRecord <> Nil) and (HexRecord^.TheType = 0) do
     Begin
       Result := WriteMem(HexRecord^.Address,HexRecord^.Data,HexRecord^.Length);
       if Result < 0 then
-        raise EInOutError.CreateFmt('TUSBDeviceEZUSB.WriteMem failed (%d %04X %p %d) with error %d: %s\n',[Result,HexRecord^.Address,@HexRecord^.Data,HexRecord^.Length,usb_error_errno,StrError(usb_error_errno)]);
+        raise ELibUsb.CreateFmt(Result,'TLibUsbDeviceEZUSB.WriteMem failed (%d %04X %p %d)\n',[Result,HexRecord^.Address,@HexRecord^.Data,HexRecord^.Length]);
       HexRecord := HexRecord^.Next;
     End;
 End;
 
-Procedure TUSBDeviceEZUSB.DownloadFirmware(AFirmware:String;StartImmediately:Boolean);
+Procedure TLibUsbDeviceEZUSB.DownloadFirmware(AFirmware:String;StartImmediately:Boolean);
 Var Firmware : PIntelHexRecord;
 Begin
   { read firmware: the only file format we currently support is Intel HEX }

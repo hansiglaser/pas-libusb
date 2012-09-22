@@ -113,6 +113,7 @@ Type
     FContext : TLibUsbContext;
     FDevice  : Plibusb_device;
     FHandle  : Plibusb_device_handle;
+  protected
     FControl : TLibUsbDeviceControlEndpoint;
   public
     Constructor Create(AContext:TLibUsbContext;ADevice:Plibusb_device);
