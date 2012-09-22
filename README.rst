@@ -81,8 +81,6 @@ Other Projects
 TODO
 ----
 
- - add new test program Test3ControlAsync, do some simple stuff with async
-   IO and a callback like querying a descriptor or a string, so that the
-   user's attention is not diverted from the main things
  - EZ-USB / DeviceWithFirmware
  - adapt testfirmware.pas und mydevice.pas to new libusb
+ - check all records in libusb.pas to have the same packing as GCC

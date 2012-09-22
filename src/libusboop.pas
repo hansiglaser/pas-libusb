@@ -41,6 +41,31 @@ Type
     Class Function  GetDeviceSpeed(dev : Plibusb_device) : Byte;
     Class Function  GetMaxPacketSize(dev : Plibusb_device; endpoint : Byte) : Integer;
     Class Function  GetMaxIsoPacketSize(dev : Plibusb_device; endpoint : Byte) : Integer;
+          // locking
+          Function  TryLockEvents : Integer;
+          Procedure LockEvents;
+          Procedure UnlockEvents;
+          Function  EventHandlingOk : Integer;
+          Function  EventHandlerActive : Integer;
+          Procedure LockEventWaiters;
+          Procedure UnlockEventWaiters;
+          Function  WaitForEvent(tv:Ptimeval) : Integer;
+          Function  WaitForEvent : Integer;
+          Function  WaitForEvent(Sec,USec:Integer) : Integer;
+          // event handling and timeout
+          Function  HandleEvents : Integer;
+          Function  HandleEvents(tv:Ptimeval) : Integer;
+          Function  HandleEvents(Sec,USec:Integer) : Integer;
+          Function  HandleEvents(completed:PInteger) : Integer;
+          Function  HandleEvents(tv:Ptimeval;completed:PInteger) : Integer;
+          Function  HandleEvents(Sec,USec:Integer;completed:PInteger) : Integer;
+          Function  HandleEventsLocked( tv:Ptimeval) : Integer;
+          Function  PollfdsHandleTimeouts : Integer;
+          Function  GetNextTimeout( tv:Ptimeval) : Integer;
+          // polling
+          Function  GetPollFDs:PPlibusb_pollfd;     (* Const before type ignored *)
+          Procedure SetPollFDNotifiers(added_cb:libusb_pollfd_added_cb; removed_cb:libusb_pollfd_removed_cb; user_data:pointer);
+
     property Context : Plibusb_context read FContext;
   End;
 
@@ -150,22 +175,37 @@ Type
 
   { TLibUsbTransfer }
 
-  TLibUsbTransferCallback = Procedure(Transfer:TLibUsbTransfer) of object;
+  TLibUsbTransferObjCallback  = Procedure(Transfer:TLibUsbTransfer) of object;
+  TLibUsbTransferProcCallback = Procedure(Transfer:TLibUsbTransfer;Data:Pointer);
   TLibUsbTransfer = class    // don't use directly
   private
-    FCallback : TLibUsbTransferCallback;
+    FObjCallback  : TLibUsbTransferObjCallback;
+    FProcCallback : TLibUsbTransferProcCallback;
+    FProcCbData   : Pointer;
+    FException    : Exception;
+    Function  GetFlags : Byte;
+    Procedure SetFlags(Const AFlags : Byte);
     Function  GetTimeout : Cardinal;
     Procedure SetTimeout(Const ATimeout : Cardinal);
+    Function  GetStatus : Integer;
+    Function  GetActualLength : Integer;
   protected
     FTransfer : Plibusb_transfer;
     FEndpoint : TLibUsbEndpoint;
     Constructor Create(AEndpoint:TLibUsbEndpoint;AIsoPackets:Integer);
+    Procedure   Callback;
   public
     Destructor Destroy; override;
-    Function Submit : Integer;
+    Function Submit : Integer; virtual;
     Function Cancel : Integer;
-    property Timeout  : Cardinal Read GetTimeout Write SetTimeout;
-    property Callback : TLibUsbTransferCallback read FCallback write FCallback;
+    property Flags    : Byte     read GetFlags   write SetFlags;
+    property Timeout  : Cardinal read GetTimeout write SetTimeout;
+    property Status   : Integer  read GetStatus;
+    property ActualLength : Integer read GetActualLength;
+    property ObjCallback  : TLibUsbTransferObjCallback  read FObjCallback  write FObjCallback;
+    property ProcCallback : TLibUsbTransferProcCallback read FProcCallback write FProcCallback;
+    property ProcCbData   : Pointer                     read FProcCbData   write FProcCbData;
+    property CbException  : Exception                   read FException;
   End;
 
   { TLibUsbControlTransfer }
@@ -191,6 +231,7 @@ Type
     Constructor Create(AEndpoint:TLibUsbDeviceControlEndpoint;ALength:Cardinal = 0);
     Destructor  Destroy; override;
     Procedure Setup(ARequestType:Byte;ARequest:Byte;AValue:Word;AIndex:Word;Const ABuf;ALength:Word;ATimeout:LongInt);
+    Function Submit : Integer; override;
     property bmRequestType : Byte read GetRequestType write SetRequestType;
     property bRequest      : Byte read GetRequest     write SetRequest;
     property wValue        : Word read GetValue       write SetValue;
@@ -234,11 +275,14 @@ Type
   ELibUsb = class(Exception)
   private
     FError : Integer;
+    Function GetErrorStr : PChar;
   public
     Constructor Create   (AError : Integer;Const Msg : String);
     Constructor CreateFmt(AError : Integer;Const Msg : String; Const Args : Array of Const);
     Class Function Check   (AResult:Integer;Const Msg : String) : Integer;
     Class Function CheckFmt(AResult:Integer;Const Msg : String; Const Args : Array of Const) : Integer;
+    property Error : Integer read FError;
+    property ErrorStr : PChar read GetErrorStr;
   End;
 
 Implementation
@@ -373,6 +417,120 @@ End;
 Class Function TLibUsbContext.GetMaxIsoPacketSize(dev:Plibusb_device; endpoint:Byte) : Integer;
 Begin
   Result := ELibUsb.Check(libusb_get_max_iso_packet_size(dev,endpoint),'GetMaxIsoPacketSize');
+End;
+
+Function TLibUsbContext.TryLockEvents : Integer;
+Begin
+  Result := libusb_try_lock_events(FContext);
+End;
+
+Procedure TLibUsbContext.LockEvents;
+Begin
+  libusb_lock_events(FContext);
+End;
+
+Procedure TLibUsbContext.UnlockEvents;
+Begin
+  libusb_unlock_events(FContext);
+End;
+
+Function TLibUsbContext.EventHandlingOk : Integer;
+Begin
+  Result := libusb_event_handling_ok(FContext);
+End;
+
+Function TLibUsbContext.EventHandlerActive : Integer;
+Begin
+  Result := libusb_event_handler_active(FContext);
+End;
+
+Procedure TLibUsbContext.LockEventWaiters;
+Begin
+  libusb_lock_event_waiters(FContext);
+End;
+
+Procedure TLibUsbContext.UnlockEventWaiters;
+Begin
+  libusb_unlock_event_waiters(FContext);
+End;
+
+Function TLibUsbContext.WaitForEvent(tv : Ptimeval) : Integer;
+Begin
+  Result := libusb_wait_for_event(FContext,tv);
+End;
+
+Function TLibUsbContext.WaitForEvent : Integer;
+Begin
+  Result := libusb_wait_for_event(FContext,Nil);
+End;
+
+Function TLibUsbContext.WaitForEvent(Sec, USec : Integer) : Integer;
+Var tv : timeval;
+Begin
+  tv.tv_sec  := Sec;
+  tv.tv_usec := USec;
+  Result := libusb_wait_for_event(FContext,@tv);
+End;
+
+Function TLibUsbContext.HandleEvents : Integer;
+Begin
+  Result := libusb_handle_events(FContext);
+End;
+
+Function TLibUsbContext.HandleEvents(tv : Ptimeval) : Integer;
+Begin
+  Result := libusb_handle_events_timeout(FContext,tv);
+End;
+
+Function TLibUsbContext.HandleEvents(Sec, USec : Integer) : Integer;
+Var tv : timeval;
+Begin
+  tv.tv_sec  := Sec;
+  tv.tv_usec := USec;
+  Result := libusb_handle_events_timeout(FContext,@tv);
+End;
+
+Function TLibUsbContext.HandleEvents(completed : PInteger) : Integer;
+Begin
+  Result := libusb_handle_events_completed(FContext,completed);
+End;
+
+Function TLibUsbContext.HandleEvents(tv : Ptimeval;completed : PInteger) : Integer;
+Begin
+  Result := libusb_handle_events_timeout_completed(FContext,tv,completed);
+End;
+
+Function TLibUsbContext.HandleEvents(Sec, USec : Integer;completed : PInteger) : Integer;
+Var tv : timeval;
+Begin
+  tv.tv_sec  := Sec;
+  tv.tv_usec := USec;
+  Result := libusb_handle_events_timeout_completed(FContext,@tv,completed);
+End;
+
+Function TLibUsbContext.HandleEventsLocked(tv : Ptimeval) : Integer;
+Begin
+  Result := libusb_handle_events_locked(FContext,tv);
+End;
+
+Function TLibUsbContext.PollfdsHandleTimeouts : Integer;
+Begin
+  Result := libusb_pollfds_handle_timeouts(FContext);
+End;
+
+Function TLibUsbContext.GetNextTimeout(tv : Ptimeval) : Integer;
+Begin
+  Result := libusb_get_next_timeout(FContext,tv);
+End;
+
+Function TLibUsbContext.GetPollFDs : PPlibusb_pollfd;
+Begin
+  Result := libusb_get_pollfds(FContext);
+End;
+
+Procedure TLibUsbContext.SetPollFDNotifiers(added_cb : libusb_pollfd_added_cb;removed_cb : libusb_pollfd_removed_cb; user_data : pointer);
+Begin
+  libusb_set_pollfd_notifiers(FContext,added_cb,removed_cb,user_data);
 End;
 
 { TLibUsbDevice }
@@ -606,8 +764,7 @@ Var MyTransfer : TLibUsbTransfer;
 Begin
   MyTransfer := TLibUsbTransfer(transfer^.user_data);
   if not assigned(MyTransfer) then Exit;
-  if not assigned(MyTransfer.FCallback) then Exit;
-  MyTransfer.FCallback(MyTransfer);
+  MyTransfer.Callback;
 End;
 
 Constructor TLibUsbTransfer.Create(AEndpoint : TLibUsbEndpoint;AIsoPackets:Integer);
@@ -622,6 +779,25 @@ Begin
   FTransfer^.user_data  := Self;
 End;
 
+Procedure TLibUsbTransfer.Callback;
+Begin
+  try
+    if assigned(FObjCallback) then
+      FObjCallback(Self)
+    else if assigned(FProcCallback) then
+      FProcCallback(Self,FProcCbData);
+  except
+    on E : Exception do
+      Begin
+        // catch exception, otherwise program execution would hang
+        WriteLn(StdErr,'Exception caught in callback: ',E.Message);
+        DumpExceptionBackTrace(StdErr);
+        // increment reference count of exception and store the object
+        FException := Exception(AcquireExceptionObject);
+      End;
+  End;
+End;
+
 Destructor TLibUsbTransfer.Destroy;
 Begin
   libusb_free_transfer(FTransfer);
@@ -630,12 +806,25 @@ End;
 
 Function TLibUsbTransfer.Submit : Integer;
 Begin
+  // clear exception
+  FreeAndNil(FException);
+  // submit the transfer
   Result := libusb_submit_transfer(FTransfer);
 End;
 
 Function TLibUsbTransfer.Cancel : Integer;
 Begin
   Result := libusb_cancel_transfer(FTransfer);
+End;
+
+Function TLibUsbTransfer.GetFlags : Byte;
+Begin
+  Result := FTransfer^.flags;
+End;
+
+Procedure TLibUsbTransfer.SetFlags(Const AFlags : Byte);
+Begin
+  FTransfer^.flags := AFlags;
 End;
 
 Function TLibUsbTransfer.GetTimeout : Cardinal;
@@ -646,6 +835,16 @@ End;
 Procedure TLibUsbTransfer.SetTimeout(Const ATimeout : Cardinal);
 Begin
   FTransfer^.timeout := ATimeout;
+End;
+
+Function TLibUsbTransfer.GetStatus : Integer;
+Begin
+  Result := FTransfer^.status;
+End;
+
+Function TLibUsbTransfer.GetActualLength : Integer;
+Begin
+  Result := FTransfer^.actual_length;
 End;
 
 { TLibUsbControlTransfer }
@@ -678,6 +877,15 @@ Begin
   // copy buffer
   Move(ABuf,FBuf[sizeof(libusb_control_setup)],ALength);
   Timeout := ATimeout;
+End;
+
+Function TLibUsbControlTransfer.Submit : Integer;
+Begin
+  // set direction according to bmRequestType
+  FTransfer^.endpoint := FEndpoint.FEndpoint or (bmRequestType and $80);
+  // dynamic array might change its location in memory, so put its current address to FTransfer
+  FTransfer^.buffer := @(FBuf[0]);
+  Result := Inherited Submit;
 End;
 
 Function TLibUsbControlTransfer.GetRequestType : Byte;
@@ -728,8 +936,9 @@ End;
 Procedure TLibUsbControlTransfer.SetLength(Const ALength : Word);
 Begin
   // allocate setup packet + data
-  System.SetLength(FBuf,SizeOf(libusb_control_setup) + ALength);
-  Plibusb_control_setup(@(FBuf[0]))^.wLength := ALength;;
+  FTransfer^.length := SizeOf(libusb_control_setup) + ALength;
+  System.SetLength(FBuf,FTransfer^.length);
+  Plibusb_control_setup(@(FBuf[0]))^.wLength := ALength;
 End;
 
 Function TLibUsbControlTransfer.GetBuffer(Index : Word) : Byte;
@@ -827,6 +1036,11 @@ Begin
   if AResult < 0 then
     raise ELibUsb.CreateFmt(AResult,Msg,Args);
   Result := AResult;
+End;
+
+Function ELibUsb.GetErrorStr : PChar;
+Begin
+  Result := PChar(libusb_error_name(FError));
 End;
 
 End.

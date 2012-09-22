@@ -49,6 +49,7 @@ Type
   cssize = Longint;
   __time_t      = cuint64;
   __suseconds_t = cuint64;
+  Ptimeval = ^timeval;
   timeval = record
     tv_sec  : __time_t;
     tv_usec : __suseconds_t;
@@ -718,7 +719,8 @@ Type
    * completed, the library populates the transfer with the results and passes
    * it back to the user.
    *)
-  libusb_transfer = packed record
+{$PACKRECORDS C}
+  libusb_transfer = record
     (** Handle of the device that this transfer will be submitted to *)
     dev_handle : Plibusb_device_handle;
     (** A bitwise OR combination of \ref libusb_transfer_flags. *)
@@ -726,7 +728,7 @@ Type
     (** Address of the endpoint where this transfer will be sent. *)
     endpoint : cuchar;
     (** Type of the endpoint from \ref libusb_transfer_type *)
-    _type : cuint;
+    _type : cuchar;
     (** Timeout for this transfer in millseconds. A value of 0 indicates no
      * timeout. *)
     timeout : cuint;
@@ -757,6 +759,7 @@ Type
     (** Isochronous packet descriptors, for isochronous transfers only. *)
     iso_packet_desc : array[0..0] of libusb_iso_packet_descriptor;
   end;
+{$PACKRECORDS DEFAULT}
 
 Const
   (** \ingroup misc
@@ -1090,15 +1093,15 @@ function libusb_event_handling_ok(ctx:Plibusb_context):cint;cdecl;external;
 function libusb_event_handler_active(ctx:Plibusb_context):cint;cdecl;external;
 procedure libusb_lock_event_waiters(ctx:Plibusb_context);cdecl;external;
 procedure libusb_unlock_event_waiters(ctx:Plibusb_context);cdecl;external;
-function libusb_wait_for_event(ctx:Plibusb_context; var tv:timeval):cint;cdecl;external;
+function libusb_wait_for_event(ctx:Plibusb_context; tv:Ptimeval):cint;cdecl;external;
 
-function libusb_handle_events_timeout(ctx:Plibusb_context; var tv:timeval):cint;cdecl;external;
-function libusb_handle_events_timeout_completed(ctx:Plibusb_context; var tv:timeval; var completed:cint):cint;cdecl;external;
+function libusb_handle_events_timeout(ctx:Plibusb_context; tv:Ptimeval):cint;cdecl;external;
+function libusb_handle_events_timeout_completed(ctx:Plibusb_context; tv:Ptimeval; completed:Pcint):cint;cdecl;external;
 function libusb_handle_events(ctx:Plibusb_context):cint;cdecl;external;
-function libusb_handle_events_completed(ctx:Plibusb_context; var completed:cint):cint;cdecl;external;
-function libusb_handle_events_locked(ctx:Plibusb_context; var tv:timeval):cint;cdecl;external;
+function libusb_handle_events_completed(ctx:Plibusb_context; completed:Pcint):cint;cdecl;external;
+function libusb_handle_events_locked(ctx:Plibusb_context; tv:Ptimeval):cint;cdecl;external;
 function libusb_pollfds_handle_timeouts(ctx:Plibusb_context):cint;cdecl;external;
-function libusb_get_next_timeout(ctx:Plibusb_context; var tv:timeval):cint;cdecl;external;
+function libusb_get_next_timeout(ctx:Plibusb_context; tv:Ptimeval):cint;cdecl;external;
 
 type
   PPlibusb_pollfd = ^Plibusb_pollfd;
@@ -1126,7 +1129,7 @@ type
    * libusb_set_pollfd_notifiers() call
    * \see libusb_set_pollfd_notifiers()
    *)
-  libusb_pollfd_added_cb = procedure (fd:cint; events:cshort; var user_data:pointer);cdecl;
+  libusb_pollfd_added_cb = procedure (fd:cint; events:cshort; user_data:pointer);cdecl;
 
   (** \ingroup poll
    * Callback function, invoked when a file descriptor should be removed from
@@ -1137,10 +1140,10 @@ type
    * libusb_set_pollfd_notifiers() call
    * \see libusb_set_pollfd_notifiers()
    *)
-  libusb_pollfd_removed_cb = procedure (fd:cint; var user_data:pointer);cdecl;
+  libusb_pollfd_removed_cb = procedure (fd:cint; user_data:pointer);cdecl;
 
 function libusb_get_pollfds(ctx:Plibusb_context):PPlibusb_pollfd;cdecl;external;     (* Const before type ignored *)
-procedure libusb_set_pollfd_notifiers(ctx:Plibusb_context; added_cb:libusb_pollfd_added_cb; removed_cb:libusb_pollfd_removed_cb; var user_data:pointer);cdecl;external;
+procedure libusb_set_pollfd_notifiers(ctx:Plibusb_context; added_cb:libusb_pollfd_added_cb; removed_cb:libusb_pollfd_removed_cb; user_data:pointer);cdecl;external;
 
 Implementation
 

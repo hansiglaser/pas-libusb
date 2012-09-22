@@ -1,0 +1,262 @@
+<?xml version="1.0"?>
+<CONFIG>
+  <ProjectOptions>
+    <Version Value="9"/>
+    <General>
+      <Flags>
+        <MainUnitHasCreateFormStatements Value="False"/>
+        <MainUnitHasTitleStatement Value="False"/>
+      </Flags>
+      <MainUnit Value="0"/>
+      <ResourceType Value="res"/>
+      <UseXPManifest Value="True"/>
+      <Icon Value="0"/>
+      <ActiveWindowIndexAtStart Value="0"/>
+    </General>
+    <i18n>
+      <EnableI18N LFM="False"/>
+    </i18n>
+    <VersionInfo>
+      <StringTable ProductVersion=""/>
+    </VersionInfo>
+    <BuildModes Count="1" Active="Default">
+      <Item1 Name="Default" Default="True"/>
+    </BuildModes>
+    <PublishOptions>
+      <Version Value="2"/>
+      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
+      <ExcludeFileFilter Value="*.(bak|ppu|o|so);*~;backup"/>
+    </PublishOptions>
+    <RunParams>
+      <local>
+        <FormatVersion Value="1"/>
+        <LaunchingApplication PathPlusParams="/usr/bin/rxvt-unicode -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+      </local>
+    </RunParams>
+    <Units Count="8">
+      <Unit0>
+        <Filename Value="test3controlasync.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="Test3ControlAsync"/>
+        <EditorIndex Value="0"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="49"/>
+        <CursorPos X="24" Y="44"/>
+        <UsageCount Value="20"/>
+        <Loaded Value="True"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="test2controlsync.pas"/>
+        <UnitName Value="Test2ControlSync"/>
+        <EditorIndex Value="3"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="34"/>
+        <CursorPos X="1" Y="69"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="../libusboop.pas"/>
+        <UnitName Value="LibUsbOop"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="2"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="66"/>
+        <CursorPos X="110" Y="67"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="mydevice.pas"/>
+        <UnitName Value="MyDevice"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="155"/>
+        <CursorPos X="34" Y="179"/>
+        <UsageCount Value="10"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="../libusb.pas"/>
+        <UnitName Value="LibUsb"/>
+        <EditorIndex Value="1"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1117"/>
+        <CursorPos X="164" Y="1146"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="/usr/share/fpcsrc/2.6.0/rtl/inc/objpash.inc"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="329"/>
+        <CursorPos X="51" Y="363"/>
+        <UsageCount Value="10"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="/usr/share/fpcsrc/2.6.0/rtl/inc/systemh.inc"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1108"/>
+        <CursorPos X="3" Y="1134"/>
+        <UsageCount Value="10"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="/usr/share/fpcsrc/2.6.0/rtl/objpas/sysutils/sysutilh.inc"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="93"/>
+        <CursorPos X="16" Y="119"/>
+        <UsageCount Value="10"/>
+      </Unit7>
+    </Units>
+    <JumpHistory Count="30" HistoryIndex="29">
+      <Position1>
+        <Filename Value="test3controlasync.pas"/>
+        <Caret Line="46" Column="1" TopLine="18"/>
+      </Position1>
+      <Position2>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="791" Column="1" TopLine="765"/>
+      </Position2>
+      <Position3>
+        <Filename Value="test3controlasync.pas"/>
+        <Caret Line="46" Column="48" TopLine="18"/>
+      </Position3>
+      <Position4>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="238" Column="37" TopLine="212"/>
+      </Position4>
+      <Position5>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="936" Column="3" TopLine="934"/>
+      </Position5>
+      <Position6>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="791" Column="1" TopLine="765"/>
+      </Position6>
+      <Position7>
+        <Filename Value="test3controlasync.pas"/>
+        <Caret Line="46" Column="1" TopLine="18"/>
+      </Position7>
+      <Position8>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="939" Column="11" TopLine="910"/>
+      </Position8>
+      <Position9>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
+      </Position9>
+      <Position10>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="863" Column="46" TopLine="844"/>
+      </Position10>
+      <Position11>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="1" Column="1" TopLine="1"/>
+      </Position11>
+      <Position12>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="863" Column="67" TopLine="819"/>
+      </Position12>
+      <Position13>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="67" Column="110" TopLine="41"/>
+      </Position13>
+      <Position14>
+        <Filename Value="test3controlasync.pas"/>
+        <Caret Line="61" Column="50" TopLine="38"/>
+      </Position14>
+      <Position15>
+        <Filename Value="test3controlasync.pas"/>
+        <Caret Line="44" Column="40" TopLine="18"/>
+      </Position15>
+      <Position16>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="766" Column="22" TopLine="740"/>
+      </Position16>
+      <Position17>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="196" Column="17" TopLine="170"/>
+      </Position17>
+      <Position18>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="795" Column="12" TopLine="780"/>
+      </Position18>
+      <Position19>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="208" Column="39" TopLine="159"/>
+      </Position19>
+      <Position20>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="796" Column="37" TopLine="770"/>
+      </Position20>
+      <Position21>
+        <Filename Value="test3controlasync.pas"/>
+        <Caret Line="52" Column="5" TopLine="15"/>
+      </Position21>
+      <Position22>
+        <Filename Value="test3controlasync.pas"/>
+        <Caret Line="46" Column="34" TopLine="15"/>
+      </Position22>
+      <Position23>
+        <Filename Value="test3controlasync.pas"/>
+        <Caret Line="44" Column="25" TopLine="15"/>
+      </Position23>
+      <Position24>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="792" Column="67" TopLine="770"/>
+      </Position24>
+      <Position25>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="523" Column="24" TopLine="502"/>
+      </Position25>
+      <Position26>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="533" Column="69" TopLine="512"/>
+      </Position26>
+      <Position27>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="531" Column="128" TopLine="507"/>
+      </Position27>
+      <Position28>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="533" Column="22" TopLine="507"/>
+      </Position28>
+      <Position29>
+        <Filename Value="../libusb.pas"/>
+        <Caret Line="1146" Column="111" TopLine="1120"/>
+      </Position29>
+      <Position30>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="531" Column="118" TopLine="507"/>
+      </Position30>
+    </JumpHistory>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="9"/>
+    <Target>
+      <Filename Value="test3controlasync"/>
+    </Target>
+    <SearchPaths>
+      <IncludeFiles Value="$(ProjOutDir)"/>
+      <OtherUnitFiles Value=".."/>
+      <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
+    </SearchPaths>
+    <Other>
+      <CompilerMessages>
+        <UseMsgFile Value="True"/>
+      </CompilerMessages>
+      <CompilerPath Value="$(CompPath)"/>
+    </Other>
+  </CompilerOptions>
+  <Debugging>
+    <Exceptions Count="3">
+      <Item1>
+        <Name Value="EAbort"/>
+      </Item1>
+      <Item2>
+        <Name Value="ECodetoolError"/>
+      </Item2>
+      <Item3>
+        <Name Value="EFOpenError"/>
+      </Item3>
+    </Exceptions>
+  </Debugging>
+</CONFIG>
