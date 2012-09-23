@@ -32,16 +32,17 @@
         <LaunchingApplication PathPlusParams="/usr/bin/rxvt-unicode -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
       </local>
     </RunParams>
-    <Units Count="4">
+    <Units Count="5">
       <Unit0>
         <Filename Value="test2controlsync.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="Test2ControlSync"/>
+        <IsVisibleTab Value="True"/>
         <EditorIndex Value="0"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
-        <CursorPos X="1" Y="5"/>
-        <UsageCount Value="20"/>
+        <TopLine Value="39"/>
+        <CursorPos X="1" Y="65"/>
+        <UsageCount Value="22"/>
         <Loaded Value="True"/>
       </Unit0>
       <Unit1>
@@ -49,9 +50,13 @@
         <UnitName Value="LibUsbOop"/>
         <EditorIndex Value="3"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="527"/>
-        <CursorPos X="14" Y="551"/>
-        <UsageCount Value="10"/>
+        <TopLine Value="357"/>
+        <CursorPos X="3" Y="383"/>
+        <UsageCount Value="11"/>
+        <Bookmarks Count="2">
+          <Item0 X="1" Y="840" ID="1"/>
+          <Item1 X="1" Y="507" ID="2"/>
+        </Bookmarks>
         <Loaded Value="True"/>
       </Unit1>
       <Unit2>
@@ -59,143 +64,152 @@
         <UnitName Value="Test1Library"/>
         <EditorIndex Value="2"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
-        <CursorPos X="1" Y="6"/>
-        <UsageCount Value="10"/>
+        <TopLine Value="20"/>
+        <CursorPos X="1" Y="86"/>
+        <UsageCount Value="11"/>
         <Loaded Value="True"/>
       </Unit2>
       <Unit3>
         <Filename Value="../libusb.pas"/>
         <UnitName Value="LibUsb"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="1"/>
         <WindowIndex Value="0"/>
-        <TopLine Value="1"/>
-        <CursorPos X="15" Y="29"/>
-        <UsageCount Value="10"/>
+        <TopLine Value="379"/>
+        <CursorPos X="3" Y="390"/>
+        <UsageCount Value="11"/>
         <Loaded Value="True"/>
       </Unit3>
+      <Unit4>
+        <Filename Value="../usb.pas"/>
+        <UnitName Value="USB"/>
+        <EditorIndex Value="4"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="392"/>
+        <CursorPos X="1" Y="420"/>
+        <UsageCount Value="11"/>
+        <Loaded Value="True"/>
+      </Unit4>
     </Units>
     <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="../libusb.pas"/>
-        <Caret Line="456" Column="5" TopLine="430"/>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="800" Column="30" TopLine="774"/>
       </Position1>
       <Position2>
-        <Filename Value="../libusb.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="164" Column="85" TopLine="149"/>
       </Position2>
       <Position3>
-        <Filename Value="../libusb.pas"/>
-        <Caret Line="457" Column="22" TopLine="412"/>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="805" Column="8" TopLine="799"/>
       </Position3>
       <Position4>
-        <Filename Value="../libusb.pas"/>
-        <Caret Line="720" Column="1" TopLine="689"/>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="157" Column="23" TopLine="130"/>
       </Position4>
       <Position5>
-        <Filename Value="../libusb.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="806" Column="20" TopLine="780"/>
       </Position5>
       <Position6>
-        <Filename Value="../libusb.pas"/>
-        <Caret Line="239" Column="42" TopLine="193"/>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="160" Column="28" TopLine="132"/>
       </Position6>
       <Position7>
-        <Filename Value="../libusb.pas"/>
-        <Caret Line="270" Column="11" TopLine="225"/>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="820" Column="89" TopLine="817"/>
       </Position7>
       <Position8>
-        <Filename Value="../libusb.pas"/>
-        <Caret Line="284" Column="15" TopLine="243"/>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="827" Column="57" TopLine="801"/>
       </Position8>
       <Position9>
-        <Filename Value="../libusb.pas"/>
-        <Caret Line="355" Column="36" TopLine="310"/>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="839" Column="64" TopLine="813"/>
       </Position9>
       <Position10>
-        <Filename Value="../libusb.pas"/>
-        <Caret Line="478" Column="32" TopLine="433"/>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="844" Column="66" TopLine="818"/>
       </Position10>
       <Position11>
-        <Filename Value="../libusb.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="849" Column="80" TopLine="823"/>
       </Position11>
       <Position12>
         <Filename Value="test2controlsync.pas"/>
-        <Caret Line="10" Column="30" TopLine="1"/>
+        <Caret Line="170" Column="1" TopLine="124"/>
       </Position12>
       <Position13>
         <Filename Value="test2controlsync.pas"/>
-        <Caret Line="133" Column="65" TopLine="106"/>
+        <Caret Line="65" Column="20" TopLine="39"/>
       </Position13>
       <Position14>
-        <Filename Value="test2controlsync.pas"/>
-        <Caret Line="130" Column="1" TopLine="88"/>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="142" Column="28" TopLine="115"/>
       </Position14>
       <Position15>
-        <Filename Value="../libusb.pas"/>
-        <Caret Line="373" Column="58" TopLine="346"/>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="815" Column="14" TopLine="771"/>
       </Position15>
       <Position16>
-        <Filename Value="../libusb.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="812" Column="16" TopLine="786"/>
       </Position16>
       <Position17>
-        <Filename Value="test2controlsync.pas"/>
-        <Caret Line="11" Column="85" TopLine="1"/>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="818" Column="14" TopLine="776"/>
       </Position17>
       <Position18>
         <Filename Value="../libusboop.pas"/>
-        <Caret Line="531" Column="1" TopLine="531"/>
+        <Caret Line="816" Column="29" TopLine="790"/>
       </Position18>
       <Position19>
         <Filename Value="../libusboop.pas"/>
-        <Caret Line="551" Column="1" TopLine="531"/>
+        <Caret Line="817" Column="11" TopLine="794"/>
       </Position19>
       <Position20>
         <Filename Value="../libusboop.pas"/>
-        <Caret Line="818" Column="1" TopLine="779"/>
+        <Caret Line="775" Column="109" TopLine="768"/>
       </Position20>
       <Position21>
-        <Filename Value="../libusb.pas"/>
-        <Caret Line="284" Column="41" TopLine="182"/>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="143" Column="117" TopLine="140"/>
       </Position21>
       <Position22>
-        <Filename Value="test2controlsync.pas"/>
-        <Caret Line="122" Column="101" TopLine="81"/>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="802" Column="109" TopLine="771"/>
       </Position22>
       <Position23>
-        <Filename Value="../libusb.pas"/>
-        <Caret Line="579" Column="48" TopLine="560"/>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="807" Column="24" TopLine="781"/>
       </Position23>
       <Position24>
-        <Filename Value="../libusb.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="483" Column="39" TopLine="455"/>
       </Position24>
       <Position25>
-        <Filename Value="../libusb.pas"/>
-        <Caret Line="111" Column="33" TopLine="66"/>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="380" Column="1" TopLine="347"/>
       </Position25>
       <Position26>
-        <Filename Value="../libusb.pas"/>
-        <Caret Line="115" Column="24" TopLine="70"/>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="387" Column="55" TopLine="362"/>
       </Position26>
       <Position27>
-        <Filename Value="test1library.pas"/>
-        <Caret Line="4" Column="67" TopLine="1"/>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="396" Column="23" TopLine="370"/>
       </Position27>
       <Position28>
-        <Filename Value="../libusb.pas"/>
-        <Caret Line="785" Column="22" TopLine="751"/>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="384" Column="24" TopLine="370"/>
       </Position28>
       <Position29>
-        <Filename Value="test2controlsync.pas"/>
-        <Caret Line="109" Column="1" TopLine="71"/>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="399" Column="1" TopLine="367"/>
       </Position29>
       <Position30>
-        <Filename Value="../libusb.pas"/>
-        <Caret Line="1" Column="1" TopLine="1"/>
+        <Filename Value="../libusboop.pas"/>
+        <Caret Line="871" Column="43" TopLine="831"/>
       </Position30>
     </JumpHistory>
   </ProjectOptions>
@@ -217,6 +231,12 @@
     </Other>
   </CompilerOptions>
   <Debugging>
+    <BreakPoints Count="1">
+      <Item1>
+        <Source Value="test2controlsync.pas"/>
+        <Line Value="169"/>
+      </Item1>
+    </BreakPoints>
     <Exceptions Count="3">
       <Item1>
         <Name Value="EAbort"/>

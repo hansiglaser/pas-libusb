@@ -62,7 +62,7 @@ Begin
   try
     Device := TLibUsbDevice.Create(Context,DevVID,DevPID);
     try
-      EP0 := TLibUsbDeviceControlEndpoint.Create(Device);
+      EP0 := Device.Control;
       // get device descriptor
       if ELibUsb.Check(EP0.GetDescriptor(LIBUSB_DT_DEVICE,0,DescrDev,LIBUSB_DT_DEVICE_SIZE),'GetDescriptor') <> LIBUSB_DT_DEVICE_SIZE then
         raise Exception.Create('GetDescriptor: Didn''t get expected number of bytes');
@@ -165,7 +165,6 @@ Begin
                 End;
             End;
         End;
-      EP0.Free;
     finally
       Device.Free;
     End;
