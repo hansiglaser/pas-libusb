@@ -31,13 +31,29 @@ Type
 
   TDynByteArray = Array of Byte;
   TLibUsbDeviceArray       = Array of Plibusb_device;
+  (*
+   * Device Matcher for TLibUsbContext.FindDevices
+   *)
   TLibUsbDeviceMatchMethod = Function(Dev:Plibusb_device) : Boolean of object;
   TLibUsbDeviceMatchFunc   = Function(Dev:Plibusb_device;Data:Pointer) : Boolean;
-  (**
-   * Device matcher class for TLibUsbContext.FindDevices
-   *)
   TLibUsbDeviceMatchClass = class
     Function Match(Dev:Plibusb_device) : Boolean; virtual; abstract;
+  End;
+  (*
+   * Interface Matcher for TLibUsbDevice.FindInterface
+   *)
+  TLibUsbInterfaceMatchMethod = Function(Intf:Plibusb_interface_descriptor) : Boolean of object;
+  TLibUsbInterfaceMatchFunc   = Function(Intf:Plibusb_interface_descriptor;Data:Pointer) : Boolean;
+  TLibUsbInterfaceMatchClass = class
+    Function Match(Intf:Plibusb_interface_descriptor) : Boolean; virtual; abstract;
+  End;
+  (*
+   * Endpoint Matcher
+   *)
+  TLibUsbEndpointMatchMethod = Function(EP:Plibusb_endpoint_descriptor) : Boolean of object;
+  TLibUsbEndpointMatchFunc   = Function(EP:Plibusb_endpoint_descriptor;Data:Pointer) : Boolean;
+  TLibUsbEndpointMatchClass = class
+    Function Match(EP:Plibusb_endpoint_descriptor) : Boolean; virtual; abstract;
   End;
 
   { TLibUsbContext }
@@ -109,11 +125,10 @@ Type
   { TLibUsbDevice }
 
   TLibUsbDevice = class   { this corresponds to libusb_device_handle }
-  private
+  protected
     FContext : TLibUsbContext;
     FDevice  : Plibusb_device;
     FHandle  : Plibusb_device_handle;
-  protected
     FControl : TLibUsbDeviceControlEndpoint;
   public
     Constructor Create(AContext:TLibUsbContext;ADevice:Plibusb_device);
@@ -122,7 +137,13 @@ Type
     Function  GetConfiguration : Integer;
     Procedure SetConfiguration(AConfiguration : Integer);
     Procedure Reset;
-    Function IsPresent : Boolean;
+    Function  IsPresent : Boolean;
+    Function  FindInterface(MatchFunc :TLibUsbInterfaceMatchMethod                  ) : Plibusb_interface_descriptor;
+    Function  FindInterface(MatchClass:TLibUsbInterfaceMatchClass;CFree:Boolean=True) : Plibusb_interface_descriptor;
+    Function  FindInterface(MatchFunc :TLibUsbInterfaceMatchFunc;Data:Pointer       ) : Plibusb_interface_descriptor;
+    Function  FindInterface(AIntfNum, AAltSetting : Byte                            ) : Plibusb_interface_descriptor;
+    Function  FindInterface                                                           : Plibusb_interface_descriptor;
+
     property Device  : Plibusb_device read FDevice;
     property Handle  : Plibusb_device_handle read FHandle;
     property Control : TLibUsbDeviceControlEndpoint read FControl;
@@ -133,17 +154,22 @@ Type
   TLibUsbInterface = class
   private
     FDevice     : TLibUsbDevice;
-    FInterface  : Integer;
-    FAltSetting : Integer;
+    FInterface  : Plibusb_interface_descriptor;
+    FIntfNum    : Byte;
+    FAltSetting : Byte;
     Procedure Claim;
     Procedure Release;
+    Procedure SetAltSetting;
     Function  IsKernelDriverActive : Boolean;
     Procedure DetachKernelDriver;
     Procedure AttachKernelDriver;
   public
-    Constructor Create(ADevice:TLibUsbDevice;AInterface:Integer);
+    Constructor Create(ADevice:TLibUsbDevice;AInterface:Plibusb_interface_descriptor);
     Destructor Destroy; override;
-    Procedure SetAltSetting(AAltSetting:Integer);
+    Function  FindEndpoint(MatchFunc :TLibUsbEndpointMatchMethod                  ) : Plibusb_endpoint_descriptor;
+    Function  FindEndpoint(MatchClass:TLibUsbEndpointMatchClass;CFree:Boolean=True) : Plibusb_endpoint_descriptor;
+    Function  FindEndpoint(MatchFunc :TLibUsbEndpointMatchFunc;Data:Pointer       ) : Plibusb_endpoint_descriptor;
+    Function  FindEndpoint(bEndpointAddress:Byte                                  ) : Plibusb_endpoint_descriptor;
   End;
 
   TLibUsbTransfer = class;
@@ -152,10 +178,10 @@ Type
 
   TLibUsbEndpoint = class
   protected
-    FDevice   : TLibUsbDevice;
-    FEndpoint : Byte;
+    FDevice : TLibUsbDevice;
+    FEPAddr : Byte;
   public
-    Constructor Create(ADevice:TLibUsbDevice;AEndpoint:Byte);
+    Constructor Create(ADevice:TLibUsbDevice;AEPAddr:Byte);
     Destructor Destroy; override;
     Procedure ClearHalt;
   End;
@@ -164,7 +190,7 @@ Type
 
   TLibUsbDeviceEndpoint = class(TLibUsbEndpoint)
   public
-    Constructor Create(ADevice:TLibUsbDevice;AEndpoint:Byte);
+    Constructor Create(ADevice:TLibUsbDevice;AEPAddr:Byte);
   End;
 
   { TLibUsbInterfaceEndpoint }
@@ -172,8 +198,9 @@ Type
   TLibUsbInterfaceEndpoint = class(TLibUsbEndpoint)
   protected
     FInterface : TLibUsbInterface;
+    FEndpoint  : Plibusb_endpoint_descriptor;
   public
-    Constructor Create(AIntf:TLibUsbInterface;AEndpoint:Byte);
+    Constructor Create(AIntf:TLibUsbInterface;AEndpoint:Plibusb_endpoint_descriptor);
   End;
 
   { TLibUsbDeviceControlEndpoint }
@@ -355,6 +382,46 @@ Begin
   Result := FFunc(Dev,FData);
 End;
 
+(**
+ * Helper class to use TLibUsbInterfaceMatchFunc instead of TLibUsbInterfaceMatchMethod
+ *)
+Type
+  TInterfaceFuncMatcher = class(TLibUsbInterfaceMatchClass)
+    FFunc : TLibUsbInterfaceMatchFunc;
+    FData : Pointer;
+    Constructor Create(AFunc:TLibUsbInterfaceMatchFunc;AData:Pointer);
+    Function    Match(Intf:Plibusb_interface_descriptor) : Boolean; override;
+  End;
+Constructor TInterfaceFuncMatcher.Create(AFunc:TLibUsbInterfaceMatchFunc;AData:Pointer);
+Begin
+  FFunc := AFunc;
+  FData := AData;
+End;
+Function TInterfaceFuncMatcher.Match(Intf:Plibusb_interface_descriptor):Boolean;
+Begin
+  Result := FFunc(Intf,FData);
+End;
+
+(**
+ * Helper class to use TLibUsbEndpointMatchFunc instead of TLibUsbEndpointMatchMethod
+ *)
+Type
+  TEndpointFuncMatcher = class(TLibUsbEndpointMatchClass)
+    FFunc : TLibUsbEndpointMatchFunc;
+    FData : Pointer;
+    Constructor Create(AFunc:TLibUsbEndpointMatchFunc;AData:Pointer);
+    Function    Match(Intf:Plibusb_endpoint_descriptor) : Boolean; override;
+  End;
+Constructor TEndpointFuncMatcher.Create(AFunc:TLibUsbEndpointMatchFunc;AData:Pointer);
+Begin
+  FFunc := AFunc;
+  FData := AData;
+End;
+Function TEndpointFuncMatcher.Match(Intf:Plibusb_endpoint_descriptor):Boolean;
+Begin
+  Result := FFunc(Intf,FData);
+End;
+
 { TLibUsbContext }
 
 Constructor TLibUsbContext.Create;
@@ -432,7 +499,7 @@ Begin
 End;
 
 (**
- * Find USB Devices according to MatchFunc
+ * Find USB Devices according to MatchClass.Match
  *
  * @param MatchClass  TLibUsbDeviceMatchClass descendent with an overridden
  *                    Match method to compare a given device with a criterion.
@@ -745,20 +812,130 @@ Begin
     { bRequest      } LIBUSB_REQUEST_GET_STATUS,
     { wValue        } 0,
     { wIndex        } 0,
-    { Buf           } Result,
+    { Buf           } Status,
     { wLength       } 2,
     { Timeout       } 40);
   Result := (R = 2);
 End;
 
+(**
+ * Find interface according to MatchFunc
+ *
+ * @param MatchFunc  method to compare a given interface descriptor with a criterion
+ *
+ * @returns first interface which matched
+ *)
+Function TLibUsbDevice.FindInterface(MatchFunc : TLibUsbInterfaceMatchMethod) : Plibusb_interface_descriptor;
+Var Config : Plibusb_config_descriptor;
+    IIntf  : Integer;
+    IAlt   : Integer;
+Begin
+  Config := FContext.GetActiveConfigDescriptor(FDevice);
+  // iterate over all interfaces
+  For IIntf := 0 to Config^.bNumInterfaces-1 do
+    With Config^._interface^[IIntf] do
+      Begin
+        // iterate over all alternate settings
+        For IAlt := 0 to num_altsetting-1 do
+          With altsetting^[IAlt] do
+            Begin
+              if MatchFunc(@altsetting^[IAlt]) then
+                Exit(@altsetting^[IAlt])
+            End;
+      End;
+  // not found
+  Result := Nil;
+End;
+
+(**
+ * Find interface according to MatchClass.Match
+ *
+ * @param MatchClass  TLibUsbInterfaceMatchClass descendent with an overridden
+ *                    Match method to compare a given interface descriptor with
+ *                    a criterion.
+ * @param Free        if true (the default), MatchClass will be Free()d
+ *
+ * @returns first interface which matched
+ *)
+Function TLibUsbDevice.FindInterface(MatchClass : TLibUsbInterfaceMatchClass; CFree : Boolean) : Plibusb_interface_descriptor;
+Begin
+  Result := FindInterface(@MatchClass.Match);
+  if CFree then
+    MatchClass.Free;
+End;
+
+(**
+ * Find interface according to MatchFunc
+ *
+ * @param MatchFunc  function to compare a given interface descriptor with a
+ *                   criterion
+ *
+ * @returns first interface which matched
+ *)
+Function TLibUsbDevice.FindInterface(MatchFunc : TLibUsbInterfaceMatchFunc; Data : Pointer) : Plibusb_interface_descriptor;
+Begin
+  Result := FindInterface(TInterfaceFuncMatcher.Create(MatchFunc,Data),true);
+End;
+
+// helper function for method below, this can't be a local function
+Function MyInterfaceMatch(Intf:Plibusb_interface_descriptor;Data:Pointer):Boolean;
+Var IntfNum    : Byte;
+    AltSetting : Byte;
+Begin
+  IntfNum    := (PtrUInt(Data) shr 0) and $FF;
+  AltSetting := (PtrUInt(Data) shr 8) and $FF;
+  Result := ((Intf^.bInterfaceNumber = IntfNum) and (Intf^.bAlternateSetting = AltSetting));
+End;
+
+(**
+ * Find interface with bInterfaceNumber = AIntfNum and bAlternateSetting = AAltSetting
+ *
+ * @param AIntfNum     required bInterfaceNumber
+ * @param AAltSetting  required bAlternateSetting
+ *
+ * @returns first interface which matched
+ *)
+Function TLibUsbDevice.FindInterface(AIntfNum, AAltSetting : Byte) : Plibusb_interface_descriptor;
+Begin
+  Result := FindInterface(@MyInterfaceMatch,Pointer(AIntfNum or (AAltSetting shl 8)));
+End;
+
+(**
+ * Get first interface
+ *
+ * @returns first interface which matched
+ *)
+Function TLibUsbDevice.FindInterface : Plibusb_interface_descriptor;
+Var Config : Plibusb_config_descriptor;
+Begin
+  // not found
+  Result := Nil;
+  Config := FContext.GetActiveConfigDescriptor(FDevice);
+  With Config^ do
+    Begin
+      if _interface = Nil then Exit;
+      if bNumInterfaces <> 1 then Exit;
+      With _interface^[0] do
+        Begin
+          if altsetting = Nil then Exit;
+          if num_altsetting <> 1 then Exit;
+          Result := @(altsetting^[0]);
+        End;
+    End;
+End;
+
 { TLibUsbInterface }
 
-Constructor TLibUsbInterface.Create(ADevice : TLibUsbDevice; AInterface : Integer);
+Constructor TLibUsbInterface.Create(ADevice : TLibUsbDevice; AInterface : Plibusb_interface_descriptor);
 Begin
   inherited Create;
   FDevice     := ADevice;
   FInterface  := AInterface;
-  FAltSetting := -1;   // unset
+  if not assigned(FInterface) then
+    raise EUSBError.Create('You have to supply an interface.');
+
+  FIntfNum    := FInterface^.bInterfaceNumber;
+  FAltSetting := FInterface^.bAlternateSetting;
 
   Claim;
 End;
@@ -769,17 +946,83 @@ Begin
   Inherited Destroy;
 End;
 
-Procedure TLibUsbInterface.SetAltSetting(AAltSetting : Integer);
+(**
+ * Find endpoint according to MatchFunc
+ *
+ * @param MatchFunc  method to compare a given endpoint descriptor with a
+ *                   criterion
+ *
+ * @returns endpoint or Nil
+ *)
+Function TLibUsbInterface.FindEndpoint(MatchFunc : TLibUsbEndpointMatchMethod) : Plibusb_endpoint_descriptor;
+Var IEP : Integer;
 Begin
-  FAltSetting := AAltSetting;
-  ELibUsb.Check(libusb_set_interface_alt_setting(FDevice.FHandle,FInterface,FAltSetting),'SetAltSetting');
+  For IEP := 0 to FInterface^.bNumEndpoints-1 do
+    if MatchFunc(@(FInterface^.endpoint^[IEP])) then
+      Exit(@(FInterface^.endpoint^[IEP]));
+  Result := Nil;
+End;
+
+(**
+ * Find endpoint according to MatchClass.Match
+ *
+ * @param MatchClass  TLibUsbEndpointMatchClass descendent with an overridden
+ *                    Match method to compare a given endpoint descriptor with
+ *                    a criterion.
+ * @param Free        if true (the default), MatchClass will be Free()d
+ *
+ * @returns endpoint or Nil
+ *)
+Function TLibUsbInterface.FindEndpoint(MatchClass : TLibUsbEndpointMatchClass;CFree : Boolean) : Plibusb_endpoint_descriptor;
+Begin
+  Result := FindEndpoint(@MatchClass.Match);
+  if CFree then
+    MatchClass.Free;
+End;
+
+(**
+ * Find endpoint according to MatchFunc
+ *
+ * @param MatchFunc  function to compare a given endpoint descriptor with a
+ *                   criterion
+ *
+ * @returns endpoint or Nil
+ *)
+Function TLibUsbInterface.FindEndpoint(MatchFunc : TLibUsbEndpointMatchFunc;Data : Pointer) : Plibusb_endpoint_descriptor;
+Begin
+  Result := FindEndpoint(TEndpointFuncMatcher.Create(MatchFunc,Data));
+End;
+
+// helper function for method below, this can't be a local function
+Function MyEndpointMatch(EP:Plibusb_endpoint_descriptor;Data:Pointer):Boolean;
+Var bEndpointAddress : Byte;
+Begin
+  bEndpointAddress := (PtrUInt(Data) shr 0) and $FF;
+  Result := (EP^.bEndpointAddress = bEndpointAddress);
+End;
+
+(**
+ * Find endpoint with bEndpointAddress
+ *
+ * @param bEndpointAddress  required bEndpointAddress
+ *
+ * @returns endpoint or Nil
+ *)
+Function TLibUsbInterface.FindEndpoint(bEndpointAddress : Byte) : Plibusb_endpoint_descriptor;
+Begin
+  Result := FindEndpoint(@MyEndpointMatch,Pointer(bEndpointAddress));
+End;
+
+Procedure TLibUsbInterface.SetAltSetting;
+Begin
+  ELibUsb.Check(libusb_set_interface_alt_setting(FDevice.FHandle,FIntfNum,FAltSetting),'SetAltSetting');
 End;
 
 Procedure TLibUsbInterface.Claim;
 Var Ret : Integer;
 Begin
   { claim interface }
-  Ret := libusb_claim_interface(FDevice.FHandle,FInterface);
+  Ret := libusb_claim_interface(FDevice.FHandle,FIntfNum);
   if Ret >= 0 then
     Exit;   // everything ok
   if Ret <> LIBUSB_ERROR_BUSY then
@@ -791,36 +1034,36 @@ Begin
   { detach driver }
   DetachKernelDriver;
   { claim again }
-  ELibUsb.Check(libusb_claim_interface(FDevice.FHandle,FInterface),'2nd Claim');
+  ELibUsb.Check(libusb_claim_interface(FDevice.FHandle,FIntfNum),'2nd Claim');
 End;
 
 Procedure TLibUsbInterface.Release;
 Begin
-  ELibUsb.Check(libusb_release_interface(FDevice.FHandle,FInterface),'Release');
+  ELibUsb.Check(libusb_release_interface(FDevice.FHandle,FIntfNum),'Release');
 End;
 
 Function TLibUsbInterface.IsKernelDriverActive : Boolean;
 Begin
-  Result := (ELibUsb.Check(libusb_kernel_driver_active(FDevice.FHandle,FInterface),'IsKernelDriverActive') > 0);
+  Result := (ELibUsb.Check(libusb_kernel_driver_active(FDevice.FHandle,FIntfNum),'IsKernelDriverActive') > 0);
 End;
 
 Procedure TLibUsbInterface.DetachKernelDriver;
 Begin
-  ELibUsb.Check(libusb_detach_kernel_driver(FDevice.FHandle,FInterface),'DetachKernelDriver');
+  ELibUsb.Check(libusb_detach_kernel_driver(FDevice.FHandle,FIntfNum),'DetachKernelDriver');
 End;
 
 Procedure TLibUsbInterface.AttachKernelDriver;
 Begin
-  ELibUsb.Check(libusb_attach_kernel_driver(FDevice.FHandle,FInterface),'AttachKernelDriver');
+  ELibUsb.Check(libusb_attach_kernel_driver(FDevice.FHandle,FIntfNum),'AttachKernelDriver');
 End;
 
 { TLibUsbEndpoint }
 
-Constructor TLibUsbEndpoint.Create(ADevice : TLibUsbDevice; AEndpoint : Byte);
+Constructor TLibUsbEndpoint.Create(ADevice : TLibUsbDevice; AEPAddr : Byte);
 Begin
   inherited Create;
-  FDevice   := ADevice;
-  FEndpoint := AEndpoint;
+  FDevice := ADevice;
+  FEPAddr := AEPAddr;
 End;
 
 Destructor TLibUsbEndpoint.Destroy;
@@ -830,21 +1073,21 @@ End;
 
 Procedure TLibUsbEndpoint.ClearHalt;
 Begin
-  ELibUsb.Check(libusb_clear_halt(FDevice.FHandle,FEndpoint),'ClearHalt');
+  ELibUsb.Check(libusb_clear_halt(FDevice.FHandle,FEPAddr),'ClearHalt');
 End;
 
 { TLibUsbDeviceEndpoint }
 
-Constructor TLibUsbDeviceEndpoint.Create(ADevice:TLibUsbDevice;AEndpoint:Byte);
+Constructor TLibUsbDeviceEndpoint.Create(ADevice:TLibUsbDevice;AEPAddr:Byte);
 Begin
-  inherited Create(ADevice,AEndpoint);
+  inherited Create(ADevice,AEPAddr);
 End;
 
 { TLibUsbInterfaceEndpoint }
 
-Constructor TLibUsbInterfaceEndpoint.Create(AIntf:TLibUsbInterface;AEndpoint:Byte);
+Constructor TLibUsbInterfaceEndpoint.Create(AIntf:TLibUsbInterface;AEndpoint:Plibusb_endpoint_descriptor);
 Begin
-  inherited Create(AIntf.FDevice,AEndpoint);
+  inherited Create(AIntf.FDevice,AEndpoint^.bEndpointAddress);
   FInterface := AIntf;
 End;
 
@@ -905,14 +1148,14 @@ End;
 
 Function TLibUsbBulkOutEndpoint.Send(Const Buf;Length,Timeout:LongInt):LongInt;
 Begin
-  Result := libusb_bulk_transfer(FDevice.Handle,FEndpoint,@Buf,Length,Length,Timeout);
+  Result := libusb_bulk_transfer(FDevice.Handle,FEPAddr,@Buf,Length,Length,Timeout);
   if Result = 0 then Result := Length;
 End;
 
 Function TLibUsbBulkOutEndpoint.Send(Buf:TDynByteArray;Timeout:LongInt):LongInt;
 Var Transferred : Integer;
 Begin
-  Result := libusb_bulk_transfer(FDevice.Handle,FEndpoint,@(Buf[0]),Length(Buf),Transferred,Timeout);
+  Result := libusb_bulk_transfer(FDevice.Handle,FEPAddr,@(Buf[0]),Length(Buf),Transferred,Timeout);
   if Result = 0 then Result := Transferred;
 End;
 
@@ -920,7 +1163,7 @@ End;
 
 Function TLibUsbBulkInEndpoint.Recv(Out Buf;Length:LongInt;Timeout:LongInt):LongInt;
 Begin
-  Result := libusb_bulk_transfer(FDevice.Handle,FEndpoint,@Buf,Length,Length,Timeout);
+  Result := libusb_bulk_transfer(FDevice.Handle,FEPAddr,@Buf,Length,Length,Timeout);
   if Result = 0 then Result := Length;
 End;
 
@@ -929,21 +1172,21 @@ Begin
   // allocate buffer
   SetLength(Result,Length);
   // set buffer length to actual number of received bytes
-  SetLength(Result,ELibUsb.Check(libusb_bulk_transfer(FDevice.Handle,FEndpoint,@(Result[0]),Length,Length,Timeout),'Recv'));
+  SetLength(Result,ELibUsb.Check(libusb_bulk_transfer(FDevice.Handle,FEPAddr,@(Result[0]),Length,Length,Timeout),'Recv'));
 End;
 
 { TLibUsbInterruptOutEndpoint }
 
 Function TLibUsbInterruptOutEndpoint.Send(Const Buf;Length,Timeout:LongInt):LongInt;
 Begin
-  Result := libusb_interrupt_transfer(FDevice.Handle,FEndpoint,@Buf,Length,Length,Timeout);
+  Result := libusb_interrupt_transfer(FDevice.Handle,FEPAddr,@Buf,Length,Length,Timeout);
   if Result = 0 then Result := Length;
 End;
 
 Function TLibUsbInterruptOutEndpoint.Send(Buf:TDynByteArray;Timeout:LongInt):LongInt;
 Var Transferred : Integer;
 Begin
-  Result := libusb_interrupt_transfer(FDevice.Handle,FEndpoint,@(Buf[0]),Length(Buf),Transferred,Timeout);
+  Result := libusb_interrupt_transfer(FDevice.Handle,FEPAddr,@(Buf[0]),Length(Buf),Transferred,Timeout);
   if Result = 0 then Result := Transferred;
 End;
 
@@ -951,7 +1194,7 @@ End;
 
 Function TLibUsbInterruptInEndpoint.Recv(Out Buf;Length:LongInt;Timeout:LongInt):LongInt;
 Begin
-  Result := libusb_interrupt_transfer(FDevice.Handle,FEndpoint,@Buf,Length,Length,Timeout);
+  Result := libusb_interrupt_transfer(FDevice.Handle,FEPAddr,@Buf,Length,Length,Timeout);
   if Result = 0 then Result := Length;
 End;
 
@@ -960,7 +1203,7 @@ Begin
   // allocate buffer
   SetLength(Result,Length);
   // set buffer length to actual number of received bytes
-  SetLength(Result,ELibUsb.Check(libusb_interrupt_transfer(FDevice.Handle,FEndpoint,@(Result[0]),Length,Length,Timeout),'Recv'));
+  SetLength(Result,ELibUsb.Check(libusb_interrupt_transfer(FDevice.Handle,FEPAddr,@(Result[0]),Length,Length,Timeout),'Recv'));
 End;
 
 { TLibUsbTransfer }
@@ -979,7 +1222,7 @@ Begin
   FEndpoint := AEndpoint;
   FTransfer := libusb_alloc_transfer(AIsoPackets);
   FTransfer^.dev_handle := FEndpoint.FDevice.Handle;
-  FTransfer^.endpoint   := FEndpoint.FEndpoint;
+  FTransfer^.endpoint   := FEndpoint.FEPAddr;
   FTransfer^.timeout    := 1000;   // set some default value
   FTransfer^.callback   := @LibUsbTransferCallback;
   FTransfer^.user_data  := Self;
@@ -1088,7 +1331,7 @@ End;
 Function TLibUsbControlTransfer.Submit : Integer;
 Begin
   // set direction according to bmRequestType
-  FTransfer^.endpoint := FEndpoint.FEndpoint or (bmRequestType and $80);
+  FTransfer^.endpoint := FEndpoint.FEPAddr or (bmRequestType and $80);
   // dynamic array might change its location in memory, so put its current address to FTransfer
   FTransfer^.buffer := @(FBuf[0]);
   Result := Inherited Submit;

@@ -23,6 +23,7 @@
 Unit LibUsb;
 
 {$mode objfpc}
+{$PACKRECORDS C}
 
 Interface
 
@@ -304,7 +305,7 @@ Type
    * All multiple-byte fields are represented in host-endian format.
    *)
   Plibusb_device_descriptor = ^libusb_device_descriptor;
-  libusb_device_descriptor = packed record
+  libusb_device_descriptor = record
     (** Size of this descriptor (in bytes) *)
     bLength : cuint8;
     (** Descriptor type. Will have value
@@ -346,7 +347,7 @@ Type
    * All multiple-byte fields are represented in host-endian format.
    *)
   Plibusb_endpoint_descriptor = ^libusb_endpoint_descriptor;
-  libusb_endpoint_descriptor = packed record
+  libusb_endpoint_descriptor = record
     (** Size of this descriptor (in bytes) *)
     bLength : cuint8;
     (** Descriptor type. Will have value
@@ -381,6 +382,8 @@ Type
     (** Length of the extra descriptors, in bytes. *)
     extra_length : cint;
   end;
+  Plibusb_endpoint_descriptor_array = ^libusb_endpoint_descriptor_array;
+  libusb_endpoint_descriptor_array = Array[0..0] of libusb_endpoint_descriptor;
 
   (** \ingroup desc
    * A structure representing the standard USB interface descriptor. This
@@ -388,7 +391,7 @@ Type
    * All multiple-byte fields are represented in host-endian format.
    *)
   Plibusb_interface_descriptor = ^libusb_interface_descriptor;
-  libusb_interface_descriptor = packed record
+  libusb_interface_descriptor = record
     (** Size of this descriptor (in bytes) *)
     bLength : cuint8;
     (** Descriptor type. Will have value
@@ -414,25 +417,29 @@ Type
     iInterface : cuint8;
     (** Array of endpoint descriptors. This length of this array is determined
      * by the bNumEndpoints field. *)
-    endpoint : Plibusb_endpoint_descriptor;  (* Const before type ignored *)
+    endpoint : Plibusb_endpoint_descriptor_array;  (* Const before type ignored *)
     (** Extra descriptors. If libusbx encounters unknown interface descriptors,
      * it will store them here, should you wish to parse them. *)
     extra : pcuchar;    (* Const before type ignored *)
     (** Length of the extra descriptors, in bytes. *)
     extra_length : cint;
   end;
+  Plibusb_interface_descriptor_array = ^libusb_interface_descriptor_array;
+  libusb_interface_descriptor_array = Array[0..0] of libusb_interface_descriptor;
 
   (** \ingroup desc
    * A collection of alternate settings for a particular USB interface.
    *)
   Plibusb_interface = ^libusb_interface;
-  libusb_interface = packed record
+  libusb_interface = record
     (** Array of interface descriptors. The length of this array is determined
      * by the num_altsetting field. *)
-    altsetting : Plibusb_interface_descriptor;    (* Const before type ignored *)
+    altsetting : Plibusb_interface_descriptor_array;    (* Const before type ignored *)
     (** The number of alternate settings that belong to this interface *)
     num_altsetting : cint;
   end;
+  Plibusb_interface_array = ^libusb_interface_array;
+  libusb_interface_array = Array[0..0] of libusb_interface;
 
   (** \ingroup desc
    * A structure representing the standard USB configuration descriptor. This
@@ -440,7 +447,7 @@ Type
    * All multiple-byte fields are represented in host-endian format.
    *)
   Plibusb_config_descriptor = ^libusb_config_descriptor;
-  libusb_config_descriptor = packed record
+  libusb_config_descriptor = record
     (** Size of this descriptor (in bytes) *)
     bLength : cuint8;
     (** Descriptor type. Will have value
@@ -463,7 +470,7 @@ Type
     MaxPower : cuint8;
     (** Array of interfaces supported by this configuration. The length of
      * this array is determined by the bNumInterfaces field. *)
-    _interface : Plibusb_interface;   (* Const before type ignored *)
+    _interface : Plibusb_interface_array;   (* Const before type ignored *)
     (** Extra descriptors. If libusbx encounters unknown configuration
      * descriptors, it will store them here, should you wish to parse them. *)
     extra : pcuchar;    (* Const before type ignored *)
@@ -474,7 +481,7 @@ Type
   (** \ingroup asyncio
    * Setup packet for control transfers. *)
   Plibusb_control_setup = ^libusb_control_setup;
-  libusb_control_setup = packed record
+  libusb_control_setup = record
     (** Request type. Bits 0:4 determine recipient, see
      * \ref libusb_request_recipient. Bits 5:6 determine type, see
      * \ref libusb_request_type. Bit 7 determines data transfer direction, see
@@ -522,7 +529,7 @@ Type
    * Structure providing the version of the libusbx runtime
    *)
   Plibusb_version = ^libusb_version;
-  libusb_version = packed record
+  libusb_version = record
     (** Library major version. *)
     major : cuint16;            (* Const before type ignored *)
     (** Library minor version. *)
@@ -690,7 +697,7 @@ Type
   (** \ingroup asyncio
    * Isochronous packet descriptor. *)
   Plibusb_iso_packet_descriptor = ^libusb_iso_packet_descriptor;
-  libusb_iso_packet_descriptor = packed record
+  libusb_iso_packet_descriptor = record
     (** Length of data to request in this packet *)
     length : cuint;
     (** Amount of data that was actually transferred *)
@@ -719,7 +726,6 @@ Type
    * completed, the library populates the transfer with the results and passes
    * it back to the user.
    *)
-{$PACKRECORDS C}
   libusb_transfer = record
     (** Handle of the device that this transfer will be submitted to *)
     dev_handle : Plibusb_device_handle;
@@ -759,7 +765,6 @@ Type
     (** Isochronous packet descriptors, for isochronous transfers only. *)
     iso_packet_desc : array[0..0] of libusb_iso_packet_descriptor;
   end;
-{$PACKRECORDS DEFAULT}
 
 Const
   (** \ingroup misc
@@ -1109,7 +1114,7 @@ type
   (** \ingroup poll
    * File descriptor for polling
    *)
-  libusb_pollfd = packed record
+  libusb_pollfd = record
     (** Numeric file descriptor *)
     fd : cint;
     (** Event flags to poll for from <poll.h>. POLLIN indicates that you

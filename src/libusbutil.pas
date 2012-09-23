@@ -30,13 +30,26 @@ Type
     Constructor Create(AContext:TLibUsbContext;AVid,APid:Word;ASerial:String);
   End;
 
+  { TLibUsbInterfaceMatchVidPidSerial }
+
+  { TLibUsbInterfaceMatchNumAlt }
+
+  TLibUsbInterfaceMatchNumAlt = class(TLibUsbInterfaceMatchClass)
+  protected
+    FIntfNum    : Byte;
+    FAltSetting : Byte;
+  public
+    Function Match(Intf:Plibusb_interface_descriptor) : Boolean; override;
+    Constructor Create(AIntfNum,AAltSetting:Byte);
+  End;
+
   { TLibUsbDeviceWithFirmware }
 
   TLibUsbDeviceWithFirmware = class(TLibUsbDevice)
   protected
     Procedure Configure(ADev:Plibusb_device); virtual; abstract;
   public
-    Constructor Create(AContext : TLibUsbContext;MatchUnconfigured,MatchConfigured:TLibUsbDeviceMatchClass); overload;
+    Constructor Create(AContext:TLibUsbContext;AMatchUnconfigured,AMatchConfigured:TLibUsbDeviceMatchClass); overload;
   End;
 
 Implementation
@@ -72,20 +85,34 @@ Begin
   FSerial := ASerial;
 End;
 
+{ TLibUsbInterfaceMatchNumAlt }
+
+Function TLibUsbInterfaceMatchNumAlt.Match(Intf : Plibusb_interface_descriptor) : Boolean;
+Begin
+  Result := ((Intf^.bInterfaceNumber = FIntfNum) and (Intf^.bAlternateSetting = FAltSetting));
+End;
+
+Constructor TLibUsbInterfaceMatchNumAlt.Create(AIntfNum, AAltSetting : Byte);
+Begin
+  inherited Create;
+  FIntfNum    := AIntfNum;
+  FAltSetting := AAltSetting;
+End;
+
 { TLibUsbDeviceWithFirmware }
 
-Constructor TLibUsbDeviceWithFirmware.Create(AContext : TLibUsbContext;MatchUnconfigured,MatchConfigured:TLibUsbDeviceMatchClass);
+Constructor TLibUsbDeviceWithFirmware.Create(AContext:TLibUsbContext;AMatchUnconfigured,AMatchConfigured:TLibUsbDeviceMatchClass);
 Var Devs    : TLibUsbDeviceArray;
     Timeout : Integer;
 Begin
   SetLength(Devs,0);
   // find configured devices, but don't complain if non were found
-  Devs := AContext.FindDevices(MatchConfigured,false,0);
+  Devs := AContext.FindDevices(AMatchConfigured,false,0);
 
   if Length(Devs) = 0 then
     Begin
       // find unconfigured devices
-      Devs := AContext.FindDevices(MatchUnconfigured,false);
+      Devs := AContext.FindDevices(AMatchUnconfigured,false);
 
       if Length(Devs) > 1 then
         raise EUSBError.Create('Found too many unconfigured devices')
@@ -111,11 +138,11 @@ Begin
 
   // find configured devices
   if Length(Devs) = 0 then
-    Devs := AContext.FindDevices(MatchConfigured,false,Timeout);
+    Devs := AContext.FindDevices(AMatchConfigured,false,Timeout);
 
   // before any exceptions, free matcher classes
-  MatchUnconfigured.Free;
-  MatchConfigured.Free;
+  AMatchUnconfigured.Free;
+  AMatchConfigured.Free;
 
   if Length(Devs) = 0 then
     raise EUSBError.Create('No configured devices found.')

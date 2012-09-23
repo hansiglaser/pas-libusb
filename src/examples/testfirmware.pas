@@ -44,18 +44,21 @@ Program TestFirmware;
 
 {$mode objfpc}{$H+}
 
-Uses Classes,SysUtils,MyDevice;
+Uses Classes,SysUtils,MyDevice,LibUsbOop,LibUsbUtil;
 
-Var TheDevice : TMyDevice;
+Var Context   : TLibUsbContext;
+    TheDevice : TMyDevice;
 
 Begin
+  // create context
+  Context := TLibUsbContext.Create;
   try
     // connect to the device
     TheDevice := TMyDevice.Create(
-      false,
-      MyDevice.USBVendEmpty,MyDevice.USBProdEmpty,
+      Context,
+      TLibUsbDeviceMatchVidPid.Create(Context,MyDevice.USBVendEmpty,MyDevice.USBProdEmpty),
       TMyDevice.FindFirmware(MyDevice.FirmwareName,'testfirmware'),
-      MyDevice.USBVendConf,MyDevice.USBProdConf);
+      TLibUsbDeviceMatchVidPid.Create(Context,MyDevice.USBVendConf,MyDevice.USBProdConf));
   except
     on E : Exception do
       Begin
@@ -69,5 +72,6 @@ Begin
   WriteLn('Status:         ',TheDevice.GetStatus);
 
   TheDevice.Free;
+  Context.Free;
 End.
 

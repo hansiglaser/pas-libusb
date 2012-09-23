@@ -84,9 +84,7 @@ TODO
  - TLibUsbDeviceEZUSB: care about changes:
     - do SetConfiguration manually
     - LoadMem issues ELibUsb instead of ELibUsb
- - adapt testfirmware.pas und mydevice.pas to new libusb
  - programming model: don't derive from TLibUsbDevice but from
    TLibUsbInterface! problem: EP0 doesn't belong to an interface but to the
    device, so how to work with devices which use control msg and bulk EPs?
  - pseudo-hid interface
- - check all records in libusb.pas to have the same packing as GCC

@@ -24,7 +24,7 @@ Unit MyDevice;
 Interface
 
 Uses
-  Classes,SysUtils,BaseUnix,CTypes,LibUSB,USB,EZUSB;
+  Classes,SysUtils,BaseUnix,CTypes,LibUsb,LibUsbOop,LibUsbUtil,EZUSB;
 
 Const
   USBVendEmpty  = $0547;   // Cypress
@@ -34,8 +34,8 @@ Const
   FirmwareName  = 'firmware.ihx';
 
 Const
-  EP_IN    =  2 or USB_ENDPOINT_IN;
-  EP_OUT   =  2 or USB_ENDPOINT_OUT;
+  EP_IN    =  2 or LIBUSB_ENDPOINT_IN;
+  EP_OUT   =  2 or LIBUSB_ENDPOINT_OUT;
 
 Const
   CMD_GET_VERSION         = $80;
@@ -46,7 +46,7 @@ Const
 Const
   ConfigUSBConfiguration = 1;
   ConfigUSBInterface     = 0;
-  ConfigUSBAltInterface  = 1;
+  ConfigUSBAltInterface  = 0;
 
 Type
 
@@ -73,7 +73,7 @@ Type
 
   { TMyDevice }
 
-  TMyDevice = Class(TUSBDeviceWithFirmware)
+  TMyDevice = Class(TLibUsbDeviceWithFirmware)
   protected
     FUidVendorEmpty   : Word;   // unconfigured
     FUidProductEmpty  : Word;
@@ -81,15 +81,13 @@ Type
     FUidProductConfig : Word;
     FFirmwareFile     : String;
     { USB variables }
-    FInterface       : TUSBInterface;
-    FEPIn            : TUSBBulkInEndpoint;
-    FEPOut           : TUSBBulkOutEndpoint;
-    Function  MatchUnconfigured(ADev:PUSBDevice) : Boolean; override;
-    Function  MatchConfigured  (ADev:PUSBDevice) : Boolean; override;
-    Procedure Configure(ADev:PUSBDevice); override;
+    FInterface       : TLibUsbInterface;
+    FEPIn            : TLibUsbBulkInEndpoint;
+    FEPOut           : TLibUsbBulkOutEndpoint;
+    Procedure Configure(ADev:Plibusb_device); override;
   public
     { class methods }
-    Constructor Create(AIsConfigured:Boolean;AidVendorEmpty,AidProductEmpty:Word;AFirmwareFile:String;AidVendorConfig:Word;AidProductConfig:Word);
+    Constructor Create(AContext:TLibUsbContext;AMatchUnconfigured:TLibUsbDeviceMatchClass;AFirmwareFile:String;AMatchConfigured:TLibUsbDeviceMatchClass);
     Destructor  Destroy; override;
     Class Function FindFirmware(AName, AProgram : String) : String;
   protected
@@ -110,29 +108,23 @@ Implementation
 (**
  * Constructor
  *
- * @param AIsConfigured     if set to true, we only search for a configured device
- * @param AidVendorEmpty
- * @param AidProductEmpty   idVendor and idProduct of an EZ-USB device without firmware
- * @param AFirmwareFile     filename of the firmware Intel Hex file. e.g. as retured by FindFirmware()
- * @param AidVendorConfig
- * @param AidProductConfig  idVendor and idProduct of the configured device
+ * @param AContext            libusb context
+ * @param AMatchUnconfigured  device matcher class for the unconfigured device
+ * @param AFirmwareFile       filename of the firmware Intel Hex file. e.g. as retured by FindFirmware()
+ * @param AMatchConfigured    device matcher class for the configured device
  *)
-Constructor TMyDevice.Create(AIsConfigured:Boolean;AidVendorEmpty,AidProductEmpty:Word;AFirmwareFile:String;AidVendorConfig:Word;AidProductConfig:Word);
+Constructor TMyDevice.Create(AContext:TLibUsbContext;AMatchUnconfigured:TLibUsbDeviceMatchClass;AFirmwareFile:String;AMatchConfigured:TLibUsbDeviceMatchClass);
 Begin
-  FUidVendorEmpty   := AidVendorEmpty;
-  FUidProductEmpty  := AidProductEmpty;
-  FUidVendorConfig  := AidVendorConfig;
-  FUidProductConfig := AidProductConfig;
   FFirmwareFile     := AFirmwareFile;
-  { uses MatchUnconfigured to find an unconfigured device, then Configure to
-    do the configuration and finally MatchConfigured to find the configured
+  { uses AMatchUnconfigured to find an unconfigured device, then Configure to
+    do the configuration and finally AMatchConfigured to find the configured
     device. }
-  inherited Create(AIsConfigured,ConfigUSBConfiguration);
+  inherited Create(AContext,AMatchUnconfigured,AMatchConfigured);
 
   // create handlers for the endpoints (and the interface they belong to)
-  FInterface       := TUSBInterface.Create(Self,USBFindInterface(ConfigUSBInterface,ConfigUSBAltInterface,FDevice));
-  FEPIn            := TUSBBulkInEndpoint. Create(FInterface,USBFindEndpoint(EP_IN,   FInterface.FInterface));
-  FEPOut           := TUSBBulkOutEndpoint.Create(FInterface,USBFindEndpoint(EP_OUT,  FInterface.FInterface));
+  FInterface       := TLibUsbInterface.Create(Self,FindInterface(ConfigUSBInterface,ConfigUSBAltInterface));
+  FEPIn            := TLibUsbBulkInEndpoint. Create(FInterface,FInterface.FindEndpoint(EP_IN));
+  FEPOut           := TLibUsbBulkOutEndpoint.Create(FInterface,FInterface.FindEndpoint(EP_OUT));
 End;
 
 (**
@@ -158,11 +150,11 @@ End;
 Function TMyDevice.SendCommand(Cmd:Byte;Value:Word;Index:Word):Integer;
 Begin
   Result := FControl.ControlMsg(
-    USB_ENDPOINT_OUT or USB_TYPE_VENDOR or USB_RECIP_DEVICE { bmRequestType },
-    Cmd      {bRequest},
-    Value,   { wValue }
-    Index,   { wIndex }
-    100);
+    { bmRequestType } LIBUSB_ENDPOINT_OUT or LIBUSB_REQUEST_TYPE_VENDOR or LIBUSB_RECIPIENT_DEVICE,
+    { bRequest      } Cmd,
+    { wValue        } Value,
+    { wIndex        } Index,
+    { Timeout       } 100);
 End;
 
 (**
@@ -175,13 +167,13 @@ End;
 Function TMyDevice.SendCommandOut(Cmd:Byte;Value:Word;Index:Word;Const Buf;Length:Integer):Integer;
 Begin
   Result := FControl.ControlMsg(
-    USB_ENDPOINT_OUT or USB_TYPE_VENDOR or USB_RECIP_DEVICE { bmRequestType },
-    Cmd      {bRequest},
-    Value,   { wValue }
-    Index,   { wIndex }
-    Buf,     { data packet }
-    Length,  { wLength }
-    100);
+    { bmRequestType } LIBUSB_ENDPOINT_OUT or LIBUSB_REQUEST_TYPE_VENDOR or LIBUSB_RECIPIENT_DEVICE,
+    { bRequest      } Cmd,
+    { wValue        } Value,
+    { wIndex        } Index,
+    { Buf           } Buf,
+    { wLength       } Length,
+    { Timeout       } 100);
 End;
 
 (**
@@ -194,13 +186,13 @@ End;
 Function TMyDevice.SendCommandIn(Cmd:Byte;Value:Word;Index:Word;Out Buf;Length:Integer):Integer;
 Begin
   Result := FControl.ControlMsg(
-    USB_ENDPOINT_IN or USB_TYPE_VENDOR or USB_RECIP_DEVICE { bmRequestType },
-    Cmd      {bRequest},
-    Value,   { wValue }
-    Index,   { wIndex }
-    Buf,     { data packet }
-    Length,  { wLength }
-    100);
+    { bmRequestType } LIBUSB_ENDPOINT_IN or LIBUSB_REQUEST_TYPE_VENDOR or LIBUSB_RECIPIENT_DEVICE,
+    { bRequest      } Cmd,
+    { wValue        } Value,
+    { wIndex        } Index,
+    { Buf           } Buf,
+    { wLength       } Length,
+    { Timeout       } 100);
 End;
 
 (*****************************************************************************)
@@ -218,7 +210,7 @@ Var R       : LongInt;
 Begin
   R := SendCommandIn(CMD_GET_VERSION,0,0,Version,SizeOf(Version));
   if R <> SizeOf(Version) then
-    raise USBException('GetVersion SendCommand',R);
+    raise ELibUsb.Create(R,'GetVersion SendCommand');
   Firmware := Version.Firmware;
 End;
 
@@ -241,7 +233,7 @@ Var R   : LongInt;
 Begin
   R := SendCommandIn(CMD_GET_VERSION_STRING,0,0,Buf,SizeOf(Buf));
   if R < 0 then
-    raise USBException('GetVersionString SendCommand',R);
+    raise ELibUsb.Create(R,'GetVersionString SendCommand');
   SetLength(Result,R);
   Move(Buf,Result[1],R);
 End;
@@ -255,7 +247,7 @@ Var R    : LongInt;
 Begin
   R := SendCommandIn(CMD_GET_STATUS,0,0,Data,SizeOf(Data));
   if R <> SizeOf(Data) then
-    raise USBException('GetStatus SendCommand',R);
+    raise ELibUsb.Create(R,'GetStatus SendCommand');
   Status := Data.MyStatus;
 End;
 
@@ -274,39 +266,15 @@ End;
 (*****************************************************************************)
 
 (**
- * Called by ancestor class to determine wheter a given device is an
- * unconfigured device we want to use.
- *)
-Function TMyDevice.MatchUnconfigured(ADev:PUSBDevice):Boolean;
-Begin
-  { We only use the _first_ controller from the list. This is                }
-  { probably a problem when several are found to distinguish between them.   }
-  { Since in this application we only have one, this problem is not further  }
-  { investigated                                                             }
-
-  Result := (ADev^.Descriptor.idVendor  = FUidVendorEmpty) and
-            (ADev^.Descriptor.idProduct = FUidProductEmpty);
-End;
-
-(**
- * Called by ancestor class to determine wheter a given device is a configured
- * device we want to use.
- *)
-Function TMyDevice.MatchConfigured(ADev:PUSBDevice):Boolean;
-Begin
-  Result := (ADev^.Descriptor.idVendor  = FUidVendorConfig) and
-            (ADev^.Descriptor.idProduct = FUidProductConfig);
-End;
-
-(**
  * Download the firmware to the given device
  *)
-Procedure TMyDevice.Configure(ADev:PUSBDevice);
-Var EZUSB : TUSBDeviceEZUSB;
+Procedure TMyDevice.Configure(ADev:Plibusb_device);
+Var EZUSB : TLibUsbDeviceEZUSB;
 Begin
   WriteLn('Using Firmware file "'+FFirmwareFile+'" to configure devices.');
   // create a temporary TUSBDeviceEZUSB object to download the firmware
-  EZUSB := TUSBDeviceEZUSB.Create(ADev);
+  EZUSB := TLibUsbDeviceEZUSB.Create(FContext,ADev);
+  EZUSB.SetConfiguration(ANCHOR_USB_CONFIG);
   EZUSB.DownloadFirmware(FFirmwareFile);
   EZUSB.Free;
 End;

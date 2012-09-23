@@ -36,15 +36,13 @@ Type
     Procedure DownloadFirmware(AFirmware:String;StartImmediately:Boolean=true);
   End;
 
-Const ANCHOR_LOAD_INTERNAL = $A0;     { Vendor specific request code for Anchor Upload/Download. This one is implemented in the core. }
+Const ANCHOR_USB_CONFIG    = 1;       { bConfigurationValue }
+      ANCHOR_LOAD_INTERNAL = $A0;     { Vendor specific request code for Anchor Upload/Download. This one is implemented in the core. }
       CPUCS_REG            = $7F92;   { EZ-USB Control and Status Register }
       CPUCS_8051RESET      = $01;     { 1: reset 8051, 0: run }
 
 Implementation
 Uses SysUtils,Errors;
-
-Const
-  EZUSBUnconfiguredConfiguration = 1;
 
 { TLibUsbDeviceEZUSB }
 
