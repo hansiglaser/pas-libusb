@@ -50,7 +50,7 @@ Build
   $ make
 
 For further information see the comment at the top of
-`src/examples/testfirmware.pas <src/examples/testfirmware.pas>`_.
+`libusb-1.0/src/examples/testfirmware.pas <src/examples/testfirmware.pas>`_.
 
 Usage
 -----
