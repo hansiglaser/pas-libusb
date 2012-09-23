@@ -1,0 +1,9 @@
+backup/
+lib/
+*.o
+*.ico
+*.res
+test1library
+test2controlsync
+test3controlasync
+testfirmware
