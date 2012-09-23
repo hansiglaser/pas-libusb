@@ -81,7 +81,7 @@ Begin
     try
       Device := TLibUsbDevice.Create(Context,DevVID,DevPID);
       try
-        EP0 := TLibUsbDeviceControlEndpoint.Create(Device);
+        EP0 := Device.Control;
         CT := TLibUsbControlTransfer.Create(EP0,LIBUSB_DT_DEVICE_SIZE);
         // setup control transfer
         CT.bmRequestType := LIBUSB_ENDPOINT_IN or LIBUSB_REQUEST_TYPE_STANDARD or LIBUSB_RECIPIENT_DEVICE;
@@ -106,7 +106,6 @@ Begin
 
         WriteLn('Done.');
         CT.Free;
-        EP0.Free;
       finally
         Device.Free;
       End;
