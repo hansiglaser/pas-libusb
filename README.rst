@@ -1,13 +1,15 @@
-pas-libusb -- Object Oriented wrapper for LibUSB
-================================================
+pas-libusb -- Object Oriented wrapper for libusb and libusbx
+============================================================
 
-`libusb <http://www.libusb.org/>`_ provides access to USB devices in user space.
+`libusb <http://www.libusb.org/>`_ and its fork `libusbx
+<http://libusbx.sourceforge.net/>`_ provide access to USB devices in user
+space.
 
 This project provides Pascal header translations plus an object-oriented
 wrapper for convenience.
 
-Note: Currently only the legacy version 0.1 of libusb is supported. The new
-version 1.0 introduced major changes in the API and will be supported later.
+This branch provides support for the new version 1.0 of libusb and its fork
+libusbx.
 
 License
 -------
@@ -36,7 +38,7 @@ Directory Structure
     Header translations and OOP wrapper.
 
   ``src/examples/``
-    Example for the direct usage of the OOP wrapper. This directory also has a
+    Examples for the direct usage of the OOP wrapper. This directory also has a
     ``Makefile``.
 
 Build
@@ -47,18 +49,38 @@ Build
   $ cd src/examples/
   $ make
 
-For further information see the comment at the top of `src/examples/testfirmware.pas
-<pas-libusb/blob/master/src/examples/testfirmware.pas>`_.
+For further information see the comment at the top of
+`src/examples/testfirmware.pas <src/examples/testfirmware.pas>`_.
 
 Usage
 -----
 
-Simply add the units ``LibUSB`` and ``USB`` to the uses-clause of your
-program. Derive from the class ``TUSBDevice`` to implement your custom driver.
+Simply add the units ``LibUsb``, ``LibUsbOop`` and ``LibUsbUtil`` to the
+uses-clause of your program. Derive from the class ``TLibUsbDevice`` to
+implement your custom driver. If your device uses several interfaces, you
+should derive from TLibUsbInterface and implement the driver. But be careful,
+because EP0 doesn't belong to an interface but to the device. If your device
+uses control messages and bulk endpoints, think of a sane solution.
 
-The unit ``EZUSB`` provdes the class ``TUSBDeviceEZUSB`` to interface to the
-Cypress EZ-USB AN2131 microcontrollers. It provides functions to access the
+The unit ``EZUSB`` provides the class ``TLibUsbDeviceEZUSB`` to interface to
+the Cypress EZ-USB AN2131 microcontrollers. It provides functions to access the
 on-chip SRAM and to download its firmware.
+
+Changes from libusb-0.1
+-----------------------
+ - all class names now start with ``TLibUsb*``
+ - you have to create a ``TLibUsbContext`` before any other action
+ - new ``TLibUsb*MatchClass``
+ - ``TLibUsbDevice``: USB configuration is now separate from the constructor,
+   you have to call ``SetConfiguration`` manually
+ - ``USBFindDevices``   is now replaced by ``TLibUsbContext.FindDevices``
+ - ``USBFindInterface`` is now replaced by ``TLibUsbDevice.FindInterface``
+ - ``FindInterface``    is now replaced by ``TLibUsbInterface.FindEndpoint``
+ - no procedural ``USB_Send``, ``USB_Recv``, ... any more
+ - ``TUSBPseudoHIDInterface`` not yet translated
+ - ``TLibUsbDeviceEZUSB``:
+    - you have to call ``SetConfiguration`` manually
+    - ``LoadMem`` issues ``ELibUsb`` instead of ``EInOutError``
 
 Platform
 --------
@@ -81,10 +103,4 @@ Other Projects
 TODO
 ----
 
- - TLibUsbDeviceEZUSB: care about changes:
-    - do SetConfiguration manually
-    - LoadMem issues ELibUsb instead of ELibUsb
- - programming model: don't derive from TLibUsbDevice but from
-   TLibUsbInterface! problem: EP0 doesn't belong to an interface but to the
-   device, so how to work with devices which use control msg and bulk EPs?
  - pseudo-hid interface
