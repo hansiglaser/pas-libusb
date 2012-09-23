@@ -20,7 +20,7 @@
 (*
 
 This program demonstrates the usage of the pas-libusb OOP wrapper. In the unit
-MyDevice a class is derived from TUSBDeviceWithFirmware to implement a "driver"
+MyDevice a class is derived from TLibUsbDeviceWithFirmware to implement a "driver"
 for a device using the firmware as provided by the ezusb-firmware project at
 https://github.com/hansiglaser/ezusb-firmware . It implements three features
  - identify an USB device as supported

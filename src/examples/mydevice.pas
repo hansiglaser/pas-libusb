@@ -120,6 +120,7 @@ Begin
     do the configuration and finally AMatchConfigured to find the configured
     device. }
   inherited Create(AContext,AMatchUnconfigured,AMatchConfigured);
+  SetConfiguration(ConfigUSBConfiguration);
 
   // create handlers for the endpoints (and the interface they belong to)
   FInterface       := TLibUsbInterface.Create(Self,FindInterface(ConfigUSBInterface,ConfigUSBAltInterface));
