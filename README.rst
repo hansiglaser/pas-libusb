@@ -14,22 +14,16 @@ libusbx.
 License
 -------
 
-    Copyright (C) 2012 Johann Glaser <Johann.Glaser@gmx.at>
+Each file contains a header showing the according license.
 
-    This program is free software; you can redistribute it and/or modify  
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or  
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License along
-    with this program; if not, write to the Free Software Foundation, Inc.,
-    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-
+ - libusb(x) and its header translation are licensed under LGPL 2.1 (or later).
+ - Some C preprocessor macros were translated to Pascal functions. These are
+   licensed under a modified LGPL.
+ - All other pascal units (especially the OOP wrapper) are licensed under a
+   modified LGPL which allows static linking (see the file
+   COPYING.modifiedLGPL.txt).
+ - The example programs are released as public domain so you can base
+   commercial work on them.
 
 Directory Structure
 -------------------

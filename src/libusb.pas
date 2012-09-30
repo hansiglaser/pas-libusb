@@ -1,7 +1,23 @@
+(***************************************************************************
+ *   Copyright (C) 2012 by Johann Glaser <Johann.Glaser@gmx.at>            *
+ *                                                                         *
+ *   Pascal unit translated from the public libusbx header file.           *
+ *                                                                         *
+ *   This pascal unit is free software; you can redistribute it and/or     *
+ *   modify it under the terms of the GNU Lesser General Public            *
+ *   License as published by the Free Software Foundation; either          *
+ *   version 2.1 of the License, or (at your option) any later version.    *
+ *                                                                         *
+ *   Some C preprocessor macros were translated to Pascal functions.       *
+ *   These are free software too; you can redistribute and/or modify       *
+ *   them under the terms of a modified GNU Lesser General Public License  *
+ *   (see the file COPYING.modifiedLGPL.txt).                              *
+ *                                                                         *
+ *   The original file header follows.                                     *
+ *                                                                         *
+ ***************************************************************************)
 (*
  * Public libusbx header file
- *
- * Copyright (c) 2012 Johann Glaser <Johann.Glaser@gmx.at>
  * Copyright © 2007-2008 Daniel Drake <dsd@gentoo.org>
  * Copyright © 2001 Johannes Erdfelt <johannes@erdfelt.com>
  *
