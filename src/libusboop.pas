@@ -3,7 +3,7 @@
  *                                                                         *
  *   Object-oriented wrapper for libusb.                                   *
  *                                                                         *
- *   This pascal unit is free software; you can redistribute it and/or     *
+ *   This Pascal unit is free software; you can redistribute it and/or     *
  *   modify it under the terms of a modified GNU Lesser General Public     *
  *   License (see the file COPYING.modifiedLGPL.txt).                      *
  *                                                                         *

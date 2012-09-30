@@ -19,7 +19,7 @@ Each file contains a header showing the according license.
  - libusb(x) and its header translation are licensed under LGPL 2.1 (or later).
  - Some C preprocessor macros were translated to Pascal functions. These are
    licensed under a modified LGPL.
- - All other pascal units (especially the OOP wrapper) are licensed under a
+ - All other Pascal units (especially the OOP wrapper) are licensed under a
    modified LGPL which allows static linking (see the file
    COPYING.modifiedLGPL.txt).
  - The example programs are released as public domain so you can base
