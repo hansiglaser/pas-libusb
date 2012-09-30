@@ -1,38 +1,26 @@
 (***************************************************************************
  *   Copyright (C) 2012 by Johann Glaser <Johann.Glaser@gmx.at>            *
  *                                                                         *
- *   Test program demonstrating the implementation of a device driver.     *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
  *                                                                         *
- *   This is free and unencumbered software released into the public       *
- *   domain.                                                               *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
  *                                                                         *
- *   Anyone is free to copy, modify, publish, use, compile, sell, or       *
- *   distribute this software, either in source code form or as a compiled *
- *   binary, for any purpose, commercial or non-commercial, and by any     *
- *   means.                                                                *
- *                                                                         *
- *   In jurisdictions that recognize copyright laws, the author or authors *
- *   of this software dedicate any and all copyright interest in the       *
- *   software to the public domain. We make this dedication for the        *
- *   benefit of the public at large and to the detriment of our heirs and  *
- *   successors. We intend this dedication to be an overt act of           *
- *   relinquishment in perpetuity of all present and future rights to this *
- *   software under copyright law.                                         *
- *                                                                         *
- *   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,       *
- *   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF    *
- *   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND                 *
- *   NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY      *
- *   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,  *
- *   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     *
- *   SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                *
- *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************)
 
 (*
 
 This program demonstrates the usage of the pas-libusb OOP wrapper. In the unit
-MyDevice a class is derived from TLibUsbDeviceWithFirmware to implement a "driver"
+MyDevice a class is derived from TUSBDeviceWithFirmware to implement a "driver"
 for a device using the firmware as provided by the ezusb-firmware project at
 https://github.com/hansiglaser/ezusb-firmware . It implements three features
  - identify an USB device as supported
@@ -56,21 +44,18 @@ Program TestFirmware;
 
 {$mode objfpc}{$H+}
 
-Uses Classes,SysUtils,MyDevice,LibUsbOop,LibUsbUtil;
+Uses Classes,SysUtils,MyDevice;
 
-Var Context   : TLibUsbContext;
-    TheDevice : TMyDevice;
+Var TheDevice : TMyDevice;
 
 Begin
-  // create context
-  Context := TLibUsbContext.Create;
   try
     // connect to the device
     TheDevice := TMyDevice.Create(
-      Context,
-      TLibUsbDeviceMatchVidPid.Create(Context,MyDevice.USBVendEmpty,MyDevice.USBProdEmpty),
+      false,
+      MyDevice.USBVendEmpty,MyDevice.USBProdEmpty,
       TMyDevice.FindFirmware(MyDevice.FirmwareName,'testfirmware'),
-      TLibUsbDeviceMatchVidPid.Create(Context,MyDevice.USBVendConf,MyDevice.USBProdConf));
+      MyDevice.USBVendConf,MyDevice.USBProdConf);
   except
     on E : Exception do
       Begin
@@ -84,6 +69,5 @@ Begin
   WriteLn('Status:         ',TheDevice.GetStatus);
 
   TheDevice.Free;
-  Context.Free;
 End.
 

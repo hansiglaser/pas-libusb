@@ -1,32 +1,20 @@
 (***************************************************************************
  *   Copyright (C) 2012 by Johann Glaser <Johann.Glaser@gmx.at>            *
  *                                                                         *
- *   USB device driver skeleton.                                           *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
  *                                                                         *
- *   This is free and unencumbered software released into the public       *
- *   domain.                                                               *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
  *                                                                         *
- *   Anyone is free to copy, modify, publish, use, compile, sell, or       *
- *   distribute this software, either in source code form or as a compiled *
- *   binary, for any purpose, commercial or non-commercial, and by any     *
- *   means.                                                                *
- *                                                                         *
- *   In jurisdictions that recognize copyright laws, the author or authors *
- *   of this software dedicate any and all copyright interest in the       *
- *   software to the public domain. We make this dedication for the        *
- *   benefit of the public at large and to the detriment of our heirs and  *
- *   successors. We intend this dedication to be an overt act of           *
- *   relinquishment in perpetuity of all present and future rights to this *
- *   software under copyright law.                                         *
- *                                                                         *
- *   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,       *
- *   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF    *
- *   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND                 *
- *   NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY      *
- *   CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,  *
- *   TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     *
- *   SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                *
- *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************)
 
 Unit MyDevice;
@@ -36,7 +24,7 @@ Unit MyDevice;
 Interface
 
 Uses
-  Classes,SysUtils,BaseUnix,CTypes,LibUsb,LibUsbOop,LibUsbUtil,EZUSB;
+  Classes,SysUtils,BaseUnix,CTypes,LibUSB,USB,EZUSB;
 
 Const
   USBVendEmpty  = $0547;   // Cypress
@@ -46,8 +34,8 @@ Const
   FirmwareName  = 'firmware.ihx';
 
 Const
-  EP_IN    =  2 or LIBUSB_ENDPOINT_IN;
-  EP_OUT   =  2 or LIBUSB_ENDPOINT_OUT;
+  EP_IN    =  2 or USB_ENDPOINT_IN;
+  EP_OUT   =  2 or USB_ENDPOINT_OUT;
 
 Const
   CMD_GET_VERSION         = $80;
@@ -58,7 +46,7 @@ Const
 Const
   ConfigUSBConfiguration = 1;
   ConfigUSBInterface     = 0;
-  ConfigUSBAltInterface  = 0;
+  ConfigUSBAltInterface  = 1;
 
 Type
 
@@ -85,7 +73,7 @@ Type
 
   { TMyDevice }
 
-  TMyDevice = Class(TLibUsbDeviceWithFirmware)
+  TMyDevice = Class(TUSBDeviceWithFirmware)
   protected
     FUidVendorEmpty   : Word;   // unconfigured
     FUidProductEmpty  : Word;
@@ -93,13 +81,15 @@ Type
     FUidProductConfig : Word;
     FFirmwareFile     : String;
     { USB variables }
-    FInterface       : TLibUsbInterface;
-    FEPIn            : TLibUsbBulkInEndpoint;
-    FEPOut           : TLibUsbBulkOutEndpoint;
-    Procedure Configure(ADev:Plibusb_device); override;
+    FInterface       : TUSBInterface;
+    FEPIn            : TUSBBulkInEndpoint;
+    FEPOut           : TUSBBulkOutEndpoint;
+    Function  MatchUnconfigured(ADev:PUSBDevice) : Boolean; override;
+    Function  MatchConfigured  (ADev:PUSBDevice) : Boolean; override;
+    Procedure Configure(ADev:PUSBDevice); override;
   public
     { class methods }
-    Constructor Create(AContext:TLibUsbContext;AMatchUnconfigured:TLibUsbDeviceMatchClass;AFirmwareFile:String;AMatchConfigured:TLibUsbDeviceMatchClass);
+    Constructor Create(AIsConfigured:Boolean;AidVendorEmpty,AidProductEmpty:Word;AFirmwareFile:String;AidVendorConfig:Word;AidProductConfig:Word);
     Destructor  Destroy; override;
     Class Function FindFirmware(AName, AProgram : String) : String;
   protected
@@ -120,24 +110,29 @@ Implementation
 (**
  * Constructor
  *
- * @param AContext            libusb context
- * @param AMatchUnconfigured  device matcher class for the unconfigured device
- * @param AFirmwareFile       filename of the firmware Intel Hex file. e.g. as retured by FindFirmware()
- * @param AMatchConfigured    device matcher class for the configured device
+ * @param AIsConfigured     if set to true, we only search for a configured device
+ * @param AidVendorEmpty
+ * @param AidProductEmpty   idVendor and idProduct of an EZ-USB device without firmware
+ * @param AFirmwareFile     filename of the firmware Intel Hex file. e.g. as retured by FindFirmware()
+ * @param AidVendorConfig
+ * @param AidProductConfig  idVendor and idProduct of the configured device
  *)
-Constructor TMyDevice.Create(AContext:TLibUsbContext;AMatchUnconfigured:TLibUsbDeviceMatchClass;AFirmwareFile:String;AMatchConfigured:TLibUsbDeviceMatchClass);
+Constructor TMyDevice.Create(AIsConfigured:Boolean;AidVendorEmpty,AidProductEmpty:Word;AFirmwareFile:String;AidVendorConfig:Word;AidProductConfig:Word);
 Begin
+  FUidVendorEmpty   := AidVendorEmpty;
+  FUidProductEmpty  := AidProductEmpty;
+  FUidVendorConfig  := AidVendorConfig;
+  FUidProductConfig := AidProductConfig;
   FFirmwareFile     := AFirmwareFile;
-  { uses AMatchUnconfigured to find an unconfigured device, then Configure to
-    do the configuration and finally AMatchConfigured to find the configured
+  { uses MatchUnconfigured to find an unconfigured device, then Configure to
+    do the configuration and finally MatchConfigured to find the configured
     device. }
-  inherited Create(AContext,AMatchUnconfigured,AMatchConfigured);
-  SetConfiguration(ConfigUSBConfiguration);
+  inherited Create(AIsConfigured,ConfigUSBConfiguration);
 
   // create handlers for the endpoints (and the interface they belong to)
-  FInterface       := TLibUsbInterface.Create(Self,FindInterface(ConfigUSBInterface,ConfigUSBAltInterface));
-  FEPIn            := TLibUsbBulkInEndpoint. Create(FInterface,FInterface.FindEndpoint(EP_IN));
-  FEPOut           := TLibUsbBulkOutEndpoint.Create(FInterface,FInterface.FindEndpoint(EP_OUT));
+  FInterface       := TUSBInterface.Create(Self,USBFindInterface(ConfigUSBInterface,ConfigUSBAltInterface,FDevice));
+  FEPIn            := TUSBBulkInEndpoint. Create(FInterface,USBFindEndpoint(EP_IN,   FInterface.FInterface));
+  FEPOut           := TUSBBulkOutEndpoint.Create(FInterface,USBFindEndpoint(EP_OUT,  FInterface.FInterface));
 End;
 
 (**
@@ -163,11 +158,11 @@ End;
 Function TMyDevice.SendCommand(Cmd:Byte;Value:Word;Index:Word):Integer;
 Begin
   Result := FControl.ControlMsg(
-    { bmRequestType } LIBUSB_ENDPOINT_OUT or LIBUSB_REQUEST_TYPE_VENDOR or LIBUSB_RECIPIENT_DEVICE,
-    { bRequest      } Cmd,
-    { wValue        } Value,
-    { wIndex        } Index,
-    { Timeout       } 100);
+    USB_ENDPOINT_OUT or USB_TYPE_VENDOR or USB_RECIP_DEVICE { bmRequestType },
+    Cmd      {bRequest},
+    Value,   { wValue }
+    Index,   { wIndex }
+    100);
 End;
 
 (**
@@ -180,13 +175,13 @@ End;
 Function TMyDevice.SendCommandOut(Cmd:Byte;Value:Word;Index:Word;Const Buf;Length:Integer):Integer;
 Begin
   Result := FControl.ControlMsg(
-    { bmRequestType } LIBUSB_ENDPOINT_OUT or LIBUSB_REQUEST_TYPE_VENDOR or LIBUSB_RECIPIENT_DEVICE,
-    { bRequest      } Cmd,
-    { wValue        } Value,
-    { wIndex        } Index,
-    { Buf           } Buf,
-    { wLength       } Length,
-    { Timeout       } 100);
+    USB_ENDPOINT_OUT or USB_TYPE_VENDOR or USB_RECIP_DEVICE { bmRequestType },
+    Cmd      {bRequest},
+    Value,   { wValue }
+    Index,   { wIndex }
+    Buf,     { data packet }
+    Length,  { wLength }
+    100);
 End;
 
 (**
@@ -199,13 +194,13 @@ End;
 Function TMyDevice.SendCommandIn(Cmd:Byte;Value:Word;Index:Word;Out Buf;Length:Integer):Integer;
 Begin
   Result := FControl.ControlMsg(
-    { bmRequestType } LIBUSB_ENDPOINT_IN or LIBUSB_REQUEST_TYPE_VENDOR or LIBUSB_RECIPIENT_DEVICE,
-    { bRequest      } Cmd,
-    { wValue        } Value,
-    { wIndex        } Index,
-    { Buf           } Buf,
-    { wLength       } Length,
-    { Timeout       } 100);
+    USB_ENDPOINT_IN or USB_TYPE_VENDOR or USB_RECIP_DEVICE { bmRequestType },
+    Cmd      {bRequest},
+    Value,   { wValue }
+    Index,   { wIndex }
+    Buf,     { data packet }
+    Length,  { wLength }
+    100);
 End;
 
 (*****************************************************************************)
@@ -223,7 +218,7 @@ Var R       : LongInt;
 Begin
   R := SendCommandIn(CMD_GET_VERSION,0,0,Version,SizeOf(Version));
   if R <> SizeOf(Version) then
-    raise ELibUsb.Create(R,'GetVersion SendCommand');
+    raise USBException('GetVersion SendCommand',R);
   Firmware := Version.Firmware;
 End;
 
@@ -246,7 +241,7 @@ Var R   : LongInt;
 Begin
   R := SendCommandIn(CMD_GET_VERSION_STRING,0,0,Buf,SizeOf(Buf));
   if R < 0 then
-    raise ELibUsb.Create(R,'GetVersionString SendCommand');
+    raise USBException('GetVersionString SendCommand',R);
   SetLength(Result,R);
   Move(Buf,Result[1],R);
 End;
@@ -260,7 +255,7 @@ Var R    : LongInt;
 Begin
   R := SendCommandIn(CMD_GET_STATUS,0,0,Data,SizeOf(Data));
   if R <> SizeOf(Data) then
-    raise ELibUsb.Create(R,'GetStatus SendCommand');
+    raise USBException('GetStatus SendCommand',R);
   Status := Data.MyStatus;
 End;
 
@@ -279,15 +274,39 @@ End;
 (*****************************************************************************)
 
 (**
+ * Called by ancestor class to determine wheter a given device is an
+ * unconfigured device we want to use.
+ *)
+Function TMyDevice.MatchUnconfigured(ADev:PUSBDevice):Boolean;
+Begin
+  { We only use the _first_ controller from the list. This is                }
+  { probably a problem when several are found to distinguish between them.   }
+  { Since in this application we only have one, this problem is not further  }
+  { investigated                                                             }
+
+  Result := (ADev^.Descriptor.idVendor  = FUidVendorEmpty) and
+            (ADev^.Descriptor.idProduct = FUidProductEmpty);
+End;
+
+(**
+ * Called by ancestor class to determine wheter a given device is a configured
+ * device we want to use.
+ *)
+Function TMyDevice.MatchConfigured(ADev:PUSBDevice):Boolean;
+Begin
+  Result := (ADev^.Descriptor.idVendor  = FUidVendorConfig) and
+            (ADev^.Descriptor.idProduct = FUidProductConfig);
+End;
+
+(**
  * Download the firmware to the given device
  *)
-Procedure TMyDevice.Configure(ADev:Plibusb_device);
-Var EZUSB : TLibUsbDeviceEZUSB;
+Procedure TMyDevice.Configure(ADev:PUSBDevice);
+Var EZUSB : TUSBDeviceEZUSB;
 Begin
   WriteLn('Using Firmware file "'+FFirmwareFile+'" to configure devices.');
   // create a temporary TUSBDeviceEZUSB object to download the firmware
-  EZUSB := TLibUsbDeviceEZUSB.Create(FContext,ADev);
-  EZUSB.SetConfiguration(ANCHOR_USB_CONFIG);
+  EZUSB := TUSBDeviceEZUSB.Create(ADev);
   EZUSB.DownloadFirmware(FFirmwareFile);
   EZUSB.Free;
 End;

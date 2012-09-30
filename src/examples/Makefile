@@ -1,5 +1,5 @@
 
-EXECUTABLES = test1library test2controlsync test3controlasync testfirmware
+EXECUTABLES = testfirmware
 FPC_OPTS = -Fu..
 
 

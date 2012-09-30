@@ -1,31 +1,36 @@
 (***************************************************************************
  *   Copyright (C) 2012 by Johann Glaser <Johann.Glaser@gmx.at>            *
  *                                                                         *
- *   Cypress/Anchor Chip EZ-USB AN2131 firmware download handler.          *
- *                                                                         *
- *   This Pascal unit is free software; you can redistribute it and/or     *
- *   modify it under the terms of a modified GNU Lesser General Public     *
- *   License (see the file COPYING.modifiedLGPL.txt).                      *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
  *                                                                         *
  *   This program is distributed in the hope that it will be useful,       *
  *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the          *
- *   GNU Lesser General Public License for more details.                   *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
  *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************)
 
 {$MODE OBJFPC}
 Unit EZUSB;
 
 Interface
-Uses LibUsb,LibUsbOop,IntelHex;
+Uses LibUSB,USB,IntelHex;
 
 Type
 
-  { TLibUsbDeviceEZUSB }
+  { TUSBDeviceEZUSB }
 
-  TLibUsbDeviceEZUSB = class(TLibUsbDevice)
+  TUSBDeviceEZUSB = class(TUSBDevice)
   public
+    Constructor Create(ADev:PUSBDevice);
+    Constructor Create(AidVendor,AidProduct:Word);
     Function ReadMem (Pos:LongInt;Out   Data;Length:LongInt):LongInt;
     Function WriteMem(Pos:LongInt;Const Data;Length:LongInt):LongInt;
     Function ResetCPU(ResetBit:Byte) : LongInt;
@@ -33,15 +38,27 @@ Type
     Procedure DownloadFirmware(AFirmware:String;StartImmediately:Boolean=true);
   End;
 
-Const ANCHOR_USB_CONFIG    = 1;       { bConfigurationValue }
-      ANCHOR_LOAD_INTERNAL = $A0;     { Vendor specific request code for Anchor Upload/Download. This one is implemented in the core. }
+Const ANCHOR_LOAD_INTERNAL = $A0;     { Vendor specific request code for Anchor Upload/Download. This one is implemented in the core. }
       CPUCS_REG            = $7F92;   { EZ-USB Control and Status Register }
       CPUCS_8051RESET      = $01;     { 1: reset 8051, 0: run }
 
 Implementation
 Uses SysUtils,Errors;
 
-{ TLibUsbDeviceEZUSB }
+Const
+  EZUSBUnconfiguredConfiguration = 1;
+
+{ TUSBDeviceEZUSB }
+
+Constructor TUSBDeviceEZUSB.Create(ADev:PUSBDevice);
+Begin
+  inherited Create(ADev,EZUSBUnconfiguredConfiguration);
+End;
+
+Constructor TUSBDeviceEZUSB.Create(AidVendor, AidProduct : Word);
+Begin
+  inherited Create(AidVendor,AidProduct,EZUSBUnconfiguredConfiguration);
+End;
 
 (**
  * Read "Length" bytes to "Data" at memory position "Pos"
@@ -52,16 +69,9 @@ Uses SysUtils,Errors;
  * returns: >0 .... count of bytes written
  *          <0 .... error number
  *)
-Function TLibUsbDeviceEZUSB.ReadMem(Pos:LongInt;Out Data;Length:LongInt) : LongInt;
+Function TUSBDeviceEZUSB.ReadMem(Pos:LongInt;Out Data;Length:LongInt) : LongInt;
 Begin
-  Result := FControl.ControlMsg(
-    { bmRequestType } LIBUSB_ENDPOINT_IN or LIBUSB_REQUEST_TYPE_VENDOR or LIBUSB_RECIPIENT_DEVICE,
-    { bRequest      } ANCHOR_LOAD_INTERNAL,
-    { wValue        } Pos,
-    { wIndex        } 0,
-    { Buf           } Data,
-    { wLength       } Length,
-    { Timeout       } 300);
+  Result := FControl.ControlMsg(USB_ENDPOINT_IN or USB_RECIP_DEVICE or USB_TYPE_VENDOR,ANCHOR_LOAD_INTERNAL,Pos,0,Data,Length,300);
 End;
 
 (**
@@ -73,35 +83,28 @@ End;
  * returns: >0 .... count of bytes written
  *          <0 .... error number
  *)
-Function TLibUsbDeviceEZUSB.WriteMem(Pos:LongInt;Const Data;Length:LongInt) : LongInt;
+Function TUSBDeviceEZUSB.WriteMem(Pos:LongInt;Const Data;Length:LongInt) : LongInt;
 Begin
-  Result := FControl.ControlMsg(
-    { bmRequestType } LIBUSB_ENDPOINT_Out or LIBUSB_REQUEST_TYPE_VENDOR or LIBUSB_RECIPIENT_DEVICE,
-    { bRequest      } ANCHOR_LOAD_INTERNAL,
-    { wValue        } Pos,
-    { wIndex        } 0,
-    { Buf           } Data,
-    { wLength       } Length,
-    { Timeout       } 300);
+  Result := FControl.ControlMsg(USB_ENDPOINT_OUT or USB_RECIP_DEVICE or USB_TYPE_VENDOR,ANCHOR_LOAD_INTERNAL,Pos,0,Data,Length,300);
 End;
 
-Function TLibUsbDeviceEZUSB.ResetCPU(ResetBit:Byte) : LongInt;
+Function TUSBDeviceEZUSB.ResetCPU(ResetBit:Byte) : LongInt;
 Begin
   Result := WriteMem(CPUCS_REG,ResetBit,1);
 End;
 
-Function TLibUsbDeviceEZUSB.LoadMem(HexRecord:PIntelHexRecord):LongInt;
+Function TUSBDeviceEZUSB.LoadMem(HexRecord:PIntelHexRecord):LongInt;
 Begin
   While (HexRecord <> Nil) and (HexRecord^.TheType = 0) do
     Begin
       Result := WriteMem(HexRecord^.Address,HexRecord^.Data,HexRecord^.Length);
       if Result < 0 then
-        raise ELibUsb.CreateFmt(Result,'TLibUsbDeviceEZUSB.WriteMem failed (%d %04X %p %d)\n',[Result,HexRecord^.Address,@HexRecord^.Data,HexRecord^.Length]);
+        raise EInOutError.CreateFmt('TUSBDeviceEZUSB.WriteMem failed (%d %04X %p %d) with error %d: %s\n',[Result,HexRecord^.Address,@HexRecord^.Data,HexRecord^.Length,usb_error_errno,StrError(usb_error_errno)]);
       HexRecord := HexRecord^.Next;
     End;
 End;
 
-Procedure TLibUsbDeviceEZUSB.DownloadFirmware(AFirmware:String;StartImmediately:Boolean);
+Procedure TUSBDeviceEZUSB.DownloadFirmware(AFirmware:String;StartImmediately:Boolean);
 Var Firmware : PIntelHexRecord;
 Begin
   { read firmware: the only file format we currently support is Intel HEX }
