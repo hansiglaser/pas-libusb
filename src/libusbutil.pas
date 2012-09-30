@@ -124,7 +124,7 @@ Begin
   // find configured devices, but don't complain if non were found
   Devs := AContext.FindDevices(AMatchConfigured,false,0);
 
-  if (Length(Devs) = 0) and assigned(AMatchUnconfigured) then
+  if Length(Devs) = 0 then
     Begin
       // find unconfigured devices
       Devs := AContext.FindDevices(AMatchUnconfigured,false);

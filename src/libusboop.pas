@@ -76,7 +76,6 @@ Type
           Function  FindDevices(MatchFunc :TLibUsbDeviceMatchMethod;                  Timeout:Integer=0) : TLibUsbDeviceArray;
           Function  FindDevices(MatchClass:TLibUsbDeviceMatchClass;CFree:Boolean=True;Timeout:Integer=0) : TLibUsbDeviceArray;
           Function  FindDevices(MatchFunc :TLibUsbDeviceMatchFunc;Data:Pointer;       Timeout:Integer=0) : TLibUsbDeviceArray;
-          Function  FindDevices(VID,PID:Word;                                         Timeout:Integer=0) : TLibUsbDeviceArray;
     // device handling
     Class Function  RefDevice(dev:Plibusb_device):Plibusb_device;
     Class Procedure UnrefDevice(dev:Plibusb_device);
@@ -134,7 +133,7 @@ Type
     FHandle  : Plibusb_device_handle;
     FControl : TLibUsbDeviceControlEndpoint;
   public
-    Constructor Create(AContext:TLibUsbContext;ADevice:Plibusb_device); virtual;
+    Constructor Create(AContext:TLibUsbContext;ADevice:Plibusb_device);
     Constructor Create(AContext:TLibUsbContext;AVID,APID:Word);
     Destructor Destroy; override;
     Function  GetConfiguration : Integer;
@@ -532,33 +531,6 @@ Begin
   Result := FindDevices(TDeviceFuncMatcher.Create(MatchFunc,Data),true,Timeout);
 End;
 
-// helper function for method below, this can't be a local function
-Function MyDeviceVidPidMatch(Dev:Plibusb_device;Data:Pointer) : Boolean;
-Var VID,PID : Word;
-    Desc    : libusb_device_descriptor;
-Begin
-  VID := (PtrUInt(Data) shr  0) and $FFFF;
-  PID := (PtrUInt(Data) shr 16) and $FFFF;
-  Desc := TLibUsbContext.GetDeviceDescriptor(Dev);
-  Result := ((Desc.idVendor = VID) and (Desc.idProduct = PID));
-End;
-
-(**
- * Find USB Devices with given idVendor and idProduct
- *
- * @param VID        idVendor
- * @param PID        idProduct
- * @param Timeout    if > 0, the search will be retried Timeout milliseconds
- *
- * @returns dynamic array of found devices
- *)
-Function TLibUsbContext.FindDevices(VID, PID : Word; Timeout : Integer) : TLibUsbDeviceArray;
-Var Data : PtrUInt;
-Begin
-  Data := (VID shl 0) or (PID shl 16);
-  Result := FindDevices(TDeviceFuncMatcher.Create(@MyDeviceVidPidMatch,Pointer(Data)),true,Timeout);
-End;
-
 Class Function TLibUsbContext.RefDevice(dev : Plibusb_device) : Plibusb_device;
 Begin
   Result := libusb_ref_device(dev);
@@ -791,16 +763,14 @@ Begin
 End;
 
 Constructor TLibUsbDevice.Create(AContext : TLibUsbContext; AVID, APID : Word);
-Var Devices : TLibUsbDeviceArray;
 Begin
-  // find device with AVID and aPID
-  Devices := AContext.FindDevices(AVID,APID,0);
-  if Length(Devices) = 0 then
+  inherited Create;
+  FContext := AContext;
+  FHandle := libusb_open_device_with_vid_pid(FContext.Context,AVID,APID);
+  if FHandle = Nil then
     raise ELibUsb.CreateFmt(Integer(LIBUSB_ERROR_NO_DEVICE),'Couldn''t find or open device %.4x:%.4x',[AVID,APID]);
-  if Length(Devices) > 1 then
-    WriteLn(Format('Warning: found %d devices with %.4x:%.4x, using the first in our list',[Length(Devices),AVID,APID]));
-  // use "standard" constructor
-  Create(AContext,Devices[0]);
+  FDevice := libusb_get_device(FHandle);
+  FControl := TLibUsbDeviceControlEndpoint.Create(Self);
 End;
 
 Destructor TLibUsbDevice.Destroy;
@@ -1070,13 +1040,8 @@ Begin
 End;
 
 Procedure TLibUsbInterface.Release;
-Var Ret : Integer;
 Begin
-  Ret := libusb_release_interface(FDevice.FHandle,FIntfNum);
-  // be fault tolerant, don't complain if the device was not (yet) claimed
-  if Ret = LIBUSB_ERROR_NOT_FOUND then
-    Exit;
-  ELibUsb.Check(Ret,'Release');
+  ELibUsb.Check(libusb_release_interface(FDevice.FHandle,FIntfNum),'Release');
 End;
 
 Function TLibUsbInterface.IsKernelDriverActive : Boolean;
@@ -1500,13 +1465,13 @@ End;
 
 Constructor ELibUsb.Create(AError : Integer; Const Msg : String);
 Begin
-  inherited Create(Msg + ': ' + PChar(libusb_error_name(AError)));
+  inherited Create(Msg);
   FError := AError;
 End;
 
 Constructor ELibUsb.CreateFmt(AError : Integer; Const Msg : String; Const Args : Array Of Const);
 Begin
-  inherited CreateFmt(Msg + ': ' + PChar(libusb_error_name(AError)),Args);
+  inherited CreateFmt(Msg,Args);
   FError := AError;
 End;
 
