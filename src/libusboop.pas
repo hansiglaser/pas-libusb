@@ -17,6 +17,13 @@ Unit LibUsbOop;
 
 {$mode objfpc}{$H+}
 
+{$macro on}
+{$ifdef windows}
+  {$define extdecl:=stdcall}
+{$else}
+  {$define extdecl:=cdecl}
+{$endif}
+
 Interface
 
 Uses
@@ -1203,7 +1210,7 @@ End;
 
 { TLibUsbTransfer }
 
-Procedure LibUsbTransferCallback(transfer:Plibusb_transfer); cdecl;
+Procedure LibUsbTransferCallback(transfer:Plibusb_transfer); extdecl;
 Var MyTransfer : TLibUsbTransfer;
 Begin
   MyTransfer := TLibUsbTransfer(transfer^.user_data);

@@ -41,6 +41,13 @@ Unit LibUsb;
 {$mode objfpc}
 {$PACKRECORDS C}
 
+{$macro on}
+{$ifdef windows}
+  {$define extdecl:=stdcall}
+{$else}
+  {$define extdecl:=cdecl}
+{$endif}
+
 Interface
 
 Uses CTypes;
@@ -734,7 +741,7 @@ Type
    * notified about.
    *)
 
-  libusb_transfer_cb_fn = procedure (transfer:Plibusb_transfer);cdecl;
+  libusb_transfer_cb_fn = procedure (transfer:Plibusb_transfer);extdecl;
 
   (** \ingroup asyncio
    * The generic USB transfer structure. The user populates this structure and
@@ -808,50 +815,50 @@ Const
   LIBUSB_LOG_LEVEL_DEBUG   = 4;
 
 
-function libusb_init(out ctx:Plibusb_context):cint;cdecl;external;
-procedure libusb_exit(ctx:Plibusb_context);cdecl;external;
-procedure libusb_set_debug(ctx:Plibusb_context; level:cint);cdecl;external;
-function libusb_get_version:Plibusb_version;cdecl;external; (* Const before type ignored *)
-function libusb_has_capability(capability:cuint32):cint;cdecl;external; (* Const before type ignored *)
-function libusb_error_name(errcode:cint):pcchar;cdecl;external;
+function libusb_init(out ctx:Plibusb_context):cint;extdecl;external;
+procedure libusb_exit(ctx:Plibusb_context);extdecl;external;
+procedure libusb_set_debug(ctx:Plibusb_context; level:cint);extdecl;external;
+function libusb_get_version:Plibusb_version;extdecl;external; (* Const before type ignored *)
+function libusb_has_capability(capability:cuint32):cint;extdecl;external; (* Const before type ignored *)
+function libusb_error_name(errcode:cint):pcchar;extdecl;external;
 
-function libusb_get_device_list(ctx:Plibusb_context; out list:PPlibusb_device):cssize;cdecl;external;
-procedure libusb_free_device_list(list:PPlibusb_device; unref_devices:cint);cdecl;external;
-function libusb_ref_device(dev:Plibusb_device):Plibusb_device;cdecl;external;
-procedure libusb_unref_device(dev:Plibusb_device);cdecl;external;
+function libusb_get_device_list(ctx:Plibusb_context; out list:PPlibusb_device):cssize;extdecl;external;
+procedure libusb_free_device_list(list:PPlibusb_device; unref_devices:cint);extdecl;external;
+function libusb_ref_device(dev:Plibusb_device):Plibusb_device;extdecl;external;
+procedure libusb_unref_device(dev:Plibusb_device);extdecl;external;
 
-function libusb_get_configuration(dev:Plibusb_device_handle; Out config:cint):cint;cdecl;external;
-function libusb_get_device_descriptor(dev:Plibusb_device; Out desc:libusb_device_descriptor):cint;cdecl;external;
-function libusb_get_active_config_descriptor(dev:Plibusb_device; Out config:Plibusb_config_descriptor):cint;cdecl;external;
-function libusb_get_config_descriptor(dev:Plibusb_device; config_index:cuint8; Out config:Plibusb_config_descriptor):cint;cdecl;external;
-function libusb_get_config_descriptor_by_value(dev:Plibusb_device; bConfigurationValue:cuint8; Out config:Plibusb_config_descriptor):cint;cdecl;external;
-procedure libusb_free_config_descriptor(config:Plibusb_config_descriptor);cdecl;external;
-function libusb_get_bus_number(dev:Plibusb_device):cuint8;cdecl;external;
-function libusb_get_port_number(dev:Plibusb_device):cuint8;cdecl;external;
-function libusb_get_parent(dev:Plibusb_device):Plibusb_device;cdecl;external;
-function libusb_get_port_path(ctx:Plibusb_context; dev:Plibusb_device; path:Pcuint8; path_length:cuint8):cint;cdecl;external;
-function libusb_get_device_address(dev:Plibusb_device):cuint8;cdecl;external;
-function libusb_get_device_speed(dev:Plibusb_device):cuint8;cdecl;external;
-function libusb_get_max_packet_size(dev:Plibusb_device; endpoint:cuchar):cint;cdecl;external;
-function libusb_get_max_iso_packet_size(dev:Plibusb_device; endpoint:cuchar):cint;cdecl;external;
+function libusb_get_configuration(dev:Plibusb_device_handle; Out config:cint):cint;extdecl;external;
+function libusb_get_device_descriptor(dev:Plibusb_device; Out desc:libusb_device_descriptor):cint;extdecl;external;
+function libusb_get_active_config_descriptor(dev:Plibusb_device; Out config:Plibusb_config_descriptor):cint;extdecl;external;
+function libusb_get_config_descriptor(dev:Plibusb_device; config_index:cuint8; Out config:Plibusb_config_descriptor):cint;extdecl;external;
+function libusb_get_config_descriptor_by_value(dev:Plibusb_device; bConfigurationValue:cuint8; Out config:Plibusb_config_descriptor):cint;extdecl;external;
+procedure libusb_free_config_descriptor(config:Plibusb_config_descriptor);extdecl;external;
+function libusb_get_bus_number(dev:Plibusb_device):cuint8;extdecl;external;
+function libusb_get_port_number(dev:Plibusb_device):cuint8;extdecl;external;
+function libusb_get_parent(dev:Plibusb_device):Plibusb_device;extdecl;external;
+function libusb_get_port_path(ctx:Plibusb_context; dev:Plibusb_device; path:Pcuint8; path_length:cuint8):cint;extdecl;external;
+function libusb_get_device_address(dev:Plibusb_device):cuint8;extdecl;external;
+function libusb_get_device_speed(dev:Plibusb_device):cuint8;extdecl;external;
+function libusb_get_max_packet_size(dev:Plibusb_device; endpoint:cuchar):cint;extdecl;external;
+function libusb_get_max_iso_packet_size(dev:Plibusb_device; endpoint:cuchar):cint;extdecl;external;
 
-function libusb_open(dev:Plibusb_device; out handle:Plibusb_device_handle):cint;cdecl;external;
-procedure libusb_close(dev_handle:Plibusb_device_handle);cdecl;external;
-function libusb_get_device(dev_handle:Plibusb_device_handle):Plibusb_device;cdecl;external;
+function libusb_open(dev:Plibusb_device; out handle:Plibusb_device_handle):cint;extdecl;external;
+procedure libusb_close(dev_handle:Plibusb_device_handle);extdecl;external;
+function libusb_get_device(dev_handle:Plibusb_device_handle):Plibusb_device;extdecl;external;
 
-function libusb_set_configuration(dev:Plibusb_device_handle; configuration:cint):cint;cdecl;external;
-function libusb_claim_interface(dev:Plibusb_device_handle; interface_number:cint):cint;cdecl;external;
-function libusb_release_interface(dev:Plibusb_device_handle; interface_number:cint):cint;cdecl;external;
+function libusb_set_configuration(dev:Plibusb_device_handle; configuration:cint):cint;extdecl;external;
+function libusb_claim_interface(dev:Plibusb_device_handle; interface_number:cint):cint;extdecl;external;
+function libusb_release_interface(dev:Plibusb_device_handle; interface_number:cint):cint;extdecl;external;
 
-function libusb_open_device_with_vid_pid(ctx:Plibusb_context; vendor_id:cuint16; product_id:cuint16):Plibusb_device_handle;cdecl;external;
+function libusb_open_device_with_vid_pid(ctx:Plibusb_context; vendor_id:cuint16; product_id:cuint16):Plibusb_device_handle;extdecl;external;
 
-function libusb_set_interface_alt_setting(dev:Plibusb_device_handle; interface_number:cint; alternate_setting:cint):cint;cdecl;external;
-function libusb_clear_halt(dev:Plibusb_device_handle; endpoint:cuchar):cint;cdecl;external;
-function libusb_reset_device(dev:Plibusb_device_handle):cint;cdecl;external;
+function libusb_set_interface_alt_setting(dev:Plibusb_device_handle; interface_number:cint; alternate_setting:cint):cint;extdecl;external;
+function libusb_clear_halt(dev:Plibusb_device_handle; endpoint:cuchar):cint;extdecl;external;
+function libusb_reset_device(dev:Plibusb_device_handle):cint;extdecl;external;
 
-function libusb_kernel_driver_active(dev:Plibusb_device_handle; interface_number:cint):cint;cdecl;external;
-function libusb_detach_kernel_driver(dev:Plibusb_device_handle; interface_number:cint):cint;cdecl;external;
-function libusb_attach_kernel_driver(dev:Plibusb_device_handle; interface_number:cint):cint;cdecl;external;
+function libusb_kernel_driver_active(dev:Plibusb_device_handle; interface_number:cint):cint;extdecl;external;
+function libusb_detach_kernel_driver(dev:Plibusb_device_handle; interface_number:cint):cint;extdecl;external;
+function libusb_attach_kernel_driver(dev:Plibusb_device_handle; interface_number:cint):cint;extdecl;external;
 
 (* async I/O *)
 
@@ -907,10 +914,10 @@ Function libusb_control_transfer_get_setup(transfer:Plibusb_transfer):Plibusb_co
  *)
 Procedure libusb_fill_control_setup(Out buffer;bmRequestType:cuint8;bRequest:cuint8;wValue:cuint16;wIndex:cuint16;wLength:cuint16);
 
-function libusb_alloc_transfer(iso_packets:cint):Plibusb_transfer;cdecl;external;
-function libusb_submit_transfer(transfer:Plibusb_transfer):cint;cdecl;external;
-function libusb_cancel_transfer(transfer:Plibusb_transfer):cint;cdecl;external;
-procedure libusb_free_transfer(transfer:Plibusb_transfer);cdecl;external;
+function libusb_alloc_transfer(iso_packets:cint):Plibusb_transfer;extdecl;external;
+function libusb_submit_transfer(transfer:Plibusb_transfer):cint;extdecl;external;
+function libusb_cancel_transfer(transfer:Plibusb_transfer):cint;extdecl;external;
+procedure libusb_free_transfer(transfer:Plibusb_transfer);extdecl;external;
 
 (** \ingroup asyncio
  * Helper function to populate the required \ref libusb_transfer fields
@@ -1069,9 +1076,9 @@ Function libusb_get_iso_packet_buffer_simple(transfer:Plibusb_transfer;packet:cu
 
 (* sync I/O *)
 
-function libusb_control_transfer  (dev_handle:Plibusb_device_handle; request_type:cuint8; bRequest:cuint8; wValue:cuint16; wIndex:cuint16; data:pcuchar; WLength:cuint16; timeout:cuint):cint;cdecl;external;
-function libusb_bulk_transfer     (dev_handle:Plibusb_device_handle; endpoint:cuchar; data:pcuchar; length:cint; out actual_length:cint;timeout:cuint):cint;cdecl;external;
-function libusb_interrupt_transfer(dev_handle:Plibusb_device_handle; endpoint:cuchar; data:pcuchar; length:cint; out actual_length:cint;timeout:cuint):cint;cdecl;external;
+function libusb_control_transfer  (dev_handle:Plibusb_device_handle; request_type:cuint8; bRequest:cuint8; wValue:cuint16; wIndex:cuint16; data:pcuchar; WLength:cuint16; timeout:cuint):cint;extdecl;external;
+function libusb_bulk_transfer     (dev_handle:Plibusb_device_handle; endpoint:cuchar; data:pcuchar; length:cint; out actual_length:cint;timeout:cuint):cint;extdecl;external;
+function libusb_interrupt_transfer(dev_handle:Plibusb_device_handle; endpoint:cuchar; data:pcuchar; length:cint; out actual_length:cint;timeout:cuint):cint;extdecl;external;
 
 (** \ingroup desc
  * Retrieve a descriptor from the default control pipe.
@@ -1103,26 +1110,26 @@ Function libusb_get_descriptor(dev:Plibusb_device_handle;desc_type:cuint8;desc_i
  *)
 Function libusb_get_string_descriptor(dev:Plibusb_device_handle;desc_index:cuint8;langid:cuint16;data:pcuchar;length:cint):cint;
 
-Function libusb_get_string_descriptor_ascii(dev:Plibusb_device_handle;desc_index:cuint8;data:pcuchar;length:cint):cint;cdecl;external;
+Function libusb_get_string_descriptor_ascii(dev:Plibusb_device_handle;desc_index:cuint8;data:pcuchar;length:cint):cint;extdecl;external;
 
 (* polling and timeouts *)
 
-function libusb_try_lock_events(ctx:Plibusb_context):cint;cdecl;external;
-procedure libusb_lock_events(ctx:Plibusb_context);cdecl;external;
-procedure libusb_unlock_events(ctx:Plibusb_context);cdecl;external;
-function libusb_event_handling_ok(ctx:Plibusb_context):cint;cdecl;external;
-function libusb_event_handler_active(ctx:Plibusb_context):cint;cdecl;external;
-procedure libusb_lock_event_waiters(ctx:Plibusb_context);cdecl;external;
-procedure libusb_unlock_event_waiters(ctx:Plibusb_context);cdecl;external;
-function libusb_wait_for_event(ctx:Plibusb_context; tv:Ptimeval):cint;cdecl;external;
+function libusb_try_lock_events(ctx:Plibusb_context):cint;extdecl;external;
+procedure libusb_lock_events(ctx:Plibusb_context);extdecl;external;
+procedure libusb_unlock_events(ctx:Plibusb_context);extdecl;external;
+function libusb_event_handling_ok(ctx:Plibusb_context):cint;extdecl;external;
+function libusb_event_handler_active(ctx:Plibusb_context):cint;extdecl;external;
+procedure libusb_lock_event_waiters(ctx:Plibusb_context);extdecl;external;
+procedure libusb_unlock_event_waiters(ctx:Plibusb_context);extdecl;external;
+function libusb_wait_for_event(ctx:Plibusb_context; tv:Ptimeval):cint;extdecl;external;
 
-function libusb_handle_events_timeout(ctx:Plibusb_context; tv:Ptimeval):cint;cdecl;external;
-function libusb_handle_events_timeout_completed(ctx:Plibusb_context; tv:Ptimeval; completed:Pcint):cint;cdecl;external;
-function libusb_handle_events(ctx:Plibusb_context):cint;cdecl;external;
-function libusb_handle_events_completed(ctx:Plibusb_context; completed:Pcint):cint;cdecl;external;
-function libusb_handle_events_locked(ctx:Plibusb_context; tv:Ptimeval):cint;cdecl;external;
-function libusb_pollfds_handle_timeouts(ctx:Plibusb_context):cint;cdecl;external;
-function libusb_get_next_timeout(ctx:Plibusb_context; tv:Ptimeval):cint;cdecl;external;
+function libusb_handle_events_timeout(ctx:Plibusb_context; tv:Ptimeval):cint;extdecl;external;
+function libusb_handle_events_timeout_completed(ctx:Plibusb_context; tv:Ptimeval; completed:Pcint):cint;extdecl;external;
+function libusb_handle_events(ctx:Plibusb_context):cint;extdecl;external;
+function libusb_handle_events_completed(ctx:Plibusb_context; completed:Pcint):cint;extdecl;external;
+function libusb_handle_events_locked(ctx:Plibusb_context; tv:Ptimeval):cint;extdecl;external;
+function libusb_pollfds_handle_timeouts(ctx:Plibusb_context):cint;extdecl;external;
+function libusb_get_next_timeout(ctx:Plibusb_context; tv:Ptimeval):cint;extdecl;external;
 
 type
   PPlibusb_pollfd = ^Plibusb_pollfd;
@@ -1150,7 +1157,7 @@ type
    * libusb_set_pollfd_notifiers() call
    * \see libusb_set_pollfd_notifiers()
    *)
-  libusb_pollfd_added_cb = procedure (fd:cint; events:cshort; user_data:pointer);cdecl;
+  libusb_pollfd_added_cb = procedure (fd:cint; events:cshort; user_data:pointer);extdecl;
 
   (** \ingroup poll
    * Callback function, invoked when a file descriptor should be removed from
@@ -1161,10 +1168,10 @@ type
    * libusb_set_pollfd_notifiers() call
    * \see libusb_set_pollfd_notifiers()
    *)
-  libusb_pollfd_removed_cb = procedure (fd:cint; user_data:pointer);cdecl;
+  libusb_pollfd_removed_cb = procedure (fd:cint; user_data:pointer);extdecl;
 
-function libusb_get_pollfds(ctx:Plibusb_context):PPlibusb_pollfd;cdecl;external;     (* Const before type ignored *)
-procedure libusb_set_pollfd_notifiers(ctx:Plibusb_context; added_cb:libusb_pollfd_added_cb; removed_cb:libusb_pollfd_removed_cb; user_data:pointer);cdecl;external;
+function libusb_get_pollfds(ctx:Plibusb_context):PPlibusb_pollfd;extdecl;external;     (* Const before type ignored *)
+procedure libusb_set_pollfd_notifiers(ctx:Plibusb_context; added_cb:libusb_pollfd_added_cb; removed_cb:libusb_pollfd_removed_cb; user_data:pointer);extdecl;external;
 
 Implementation
 
