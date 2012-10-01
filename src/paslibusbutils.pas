@@ -17,7 +17,6 @@
 Unit PasLibUsbUtils;
 
 Interface
-Uses SysUtils,StrUtils,Classes,BaseUnix,Unix;
 
 Const HexChars = '0123456789ABCDEF';
 
@@ -25,6 +24,8 @@ Function HexToInt(St:ShortString):Int64;
 Function GetUSec : UInt64;
 
 Implementation
+
+Uses SysUtils,Unix;
 
 Function HexToInt(St:ShortString):Int64;
 Var I,J : LongInt;

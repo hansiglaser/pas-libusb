@@ -1175,8 +1175,6 @@ procedure libusb_set_pollfd_notifiers(ctx:Plibusb_context; added_cb:libusb_pollf
 
 Implementation
 
-Uses SysUtils;
-
 Function libusb_cpu_to_le16(x:cuint16) : cuint16;
 Begin
   Result := NtoLE(x);
