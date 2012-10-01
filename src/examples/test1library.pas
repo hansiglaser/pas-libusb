@@ -69,8 +69,10 @@ Begin
       Begin
         Addr     := TLibUsbContext.GetDeviceAddress   (DevList[I]);
         Bus      := TLibUsbContext.GetBusNumber       (DevList[I]);
-        Port     := TLibUsbContext.GetPortNumber      (DevList[I]);
-        PortPath :=        Context.GetPortPath        (DevList[I]);
+        if assigned(LibUsb.libusb_get_port_number) then  // Not defined for older versions of libusb-1.0
+          Port     := TLibUsbContext.GetPortNumber      (DevList[I]);
+        if assigned(LibUsb.libusb_get_port_path) then    // Not defined for older versions of libusb-1.0
+          PortPath :=        Context.GetPortPath        (DevList[I]);
         Speed    := TLibUsbContext.GetDeviceSpeed     (DevList[I]);
         DevDesc  := TLibUsbContext.GetDeviceDescriptor(DevList[I]);
         Write('  Bus ',Bus:3,' Device ',Addr:3,': ID ',IntToHex(DevDesc.idVendor,4),':',IntToHex(DevDesc.idProduct,4));

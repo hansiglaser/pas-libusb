@@ -52,9 +52,6 @@ Interface
 
 Uses CTypes;
 
-{$LINKLIB c}
-{$LINKLIB usb-1.0}
-
 (*
   Automatically converted by H2Pas 1.0.0 from libusb.h
   The following command line parameters were used:
@@ -815,50 +812,51 @@ Const
   LIBUSB_LOG_LEVEL_DEBUG   = 4;
 
 
-function libusb_init(out ctx:Plibusb_context):cint;extdecl;external;
-procedure libusb_exit(ctx:Plibusb_context);extdecl;external;
-procedure libusb_set_debug(ctx:Plibusb_context; level:cint);extdecl;external;
-function libusb_get_version:Plibusb_version;extdecl;external; (* Const before type ignored *)
-function libusb_has_capability(capability:cuint32):cint;extdecl;external; (* Const before type ignored *)
-function libusb_error_name(errcode:cint):pcchar;extdecl;external;
+var
+  libusb_init : function(var ctx:Plibusb_context):cint;extdecl;
+  libusb_exit : procedure (ctx:Plibusb_context);extdecl;
+  libusb_set_debug : procedure (ctx:Plibusb_context; level:cint);extdecl;
+  libusb_get_version : function: Plibusb_version;extdecl; (* Const before type ignored *)
+  libusb_has_capability : function (capability:cuint32):cint;extdecl; (* Const before type ignored *)
+  libusb_error_name : function (errcode:cint):pcchar;extdecl;
 
-function libusb_get_device_list(ctx:Plibusb_context; out list:PPlibusb_device):cssize;extdecl;external;
-procedure libusb_free_device_list(list:PPlibusb_device; unref_devices:cint);extdecl;external;
-function libusb_ref_device(dev:Plibusb_device):Plibusb_device;extdecl;external;
-procedure libusb_unref_device(dev:Plibusb_device);extdecl;external;
+  libusb_get_device_list : function (ctx:Plibusb_context; out list:PPlibusb_device):cssize;extdecl;
+  libusb_free_device_list : procedure (list:PPlibusb_device; unref_devices:cint);extdecl;
+  libusb_ref_device : function (dev:Plibusb_device):Plibusb_device;extdecl;
+  libusb_unref_device : procedure (dev:Plibusb_device);extdecl;
 
-function libusb_get_configuration(dev:Plibusb_device_handle; Out config:cint):cint;extdecl;external;
-function libusb_get_device_descriptor(dev:Plibusb_device; Out desc:libusb_device_descriptor):cint;extdecl;external;
-function libusb_get_active_config_descriptor(dev:Plibusb_device; Out config:Plibusb_config_descriptor):cint;extdecl;external;
-function libusb_get_config_descriptor(dev:Plibusb_device; config_index:cuint8; Out config:Plibusb_config_descriptor):cint;extdecl;external;
-function libusb_get_config_descriptor_by_value(dev:Plibusb_device; bConfigurationValue:cuint8; Out config:Plibusb_config_descriptor):cint;extdecl;external;
-procedure libusb_free_config_descriptor(config:Plibusb_config_descriptor);extdecl;external;
-function libusb_get_bus_number(dev:Plibusb_device):cuint8;extdecl;external;
-function libusb_get_port_number(dev:Plibusb_device):cuint8;extdecl;external;
-function libusb_get_parent(dev:Plibusb_device):Plibusb_device;extdecl;external;
-function libusb_get_port_path(ctx:Plibusb_context; dev:Plibusb_device; path:Pcuint8; path_length:cuint8):cint;extdecl;external;
-function libusb_get_device_address(dev:Plibusb_device):cuint8;extdecl;external;
-function libusb_get_device_speed(dev:Plibusb_device):cuint8;extdecl;external;
-function libusb_get_max_packet_size(dev:Plibusb_device; endpoint:cuchar):cint;extdecl;external;
-function libusb_get_max_iso_packet_size(dev:Plibusb_device; endpoint:cuchar):cint;extdecl;external;
+  libusb_get_configuration : function (dev:Plibusb_device_handle; Out config:cint):cint;extdecl;
+  libusb_get_device_descriptor : function (dev:Plibusb_device; Out desc:libusb_device_descriptor):cint;extdecl;
+  libusb_get_active_config_descriptor : function (dev:Plibusb_device; Out config:Plibusb_config_descriptor):cint;extdecl;
+  libusb_get_config_descriptor : function (dev:Plibusb_device; config_index:cuint8; Out config:Plibusb_config_descriptor):cint;extdecl;
+  libusb_get_config_descriptor_by_value : function (dev:Plibusb_device; bConfigurationValue:cuint8; Out config:Plibusb_config_descriptor):cint;extdecl;
+  libusb_free_config_descriptor : procedure (config:Plibusb_config_descriptor);extdecl;
+  libusb_get_bus_number : function (dev:Plibusb_device):cuint8;extdecl;            //  Added after 1.0.11
+  libusb_get_port_number : function (dev:Plibusb_device):cuint8;extdecl;           //  Added after 1.0.11
+  libusb_get_parent : function (dev:Plibusb_device):Plibusb_device;extdecl;
+  libusb_get_port_path : function (ctx:Plibusb_context; dev:Plibusb_device; path:Pcuint8; path_length:cuint8):cint;extdecl;
+  libusb_get_device_address : function (dev:Plibusb_device):cuint8;extdecl;        //  Added after 1.0.11
+  libusb_get_device_speed : function (dev:Plibusb_device):cuint8;extdecl;
+  libusb_get_max_packet_size : function (dev:Plibusb_device; endpoint:cuchar):cint;extdecl;
+  libusb_get_max_iso_packet_size : function (dev:Plibusb_device; endpoint:cuchar):cint;extdecl;
 
-function libusb_open(dev:Plibusb_device; out handle:Plibusb_device_handle):cint;extdecl;external;
-procedure libusb_close(dev_handle:Plibusb_device_handle);extdecl;external;
-function libusb_get_device(dev_handle:Plibusb_device_handle):Plibusb_device;extdecl;external;
+  libusb_open : function (dev:Plibusb_device; out handle:Plibusb_device_handle):cint;extdecl;
+  libusb_close : procedure (dev_handle:Plibusb_device_handle);extdecl;
+  libusb_get_device : function (dev_handle:Plibusb_device_handle):Plibusb_device;extdecl;
 
-function libusb_set_configuration(dev:Plibusb_device_handle; configuration:cint):cint;extdecl;external;
-function libusb_claim_interface(dev:Plibusb_device_handle; interface_number:cint):cint;extdecl;external;
-function libusb_release_interface(dev:Plibusb_device_handle; interface_number:cint):cint;extdecl;external;
+  libusb_set_configuration : function (dev:Plibusb_device_handle; configuration:cint):cint;extdecl;
+  libusb_claim_interface : function (dev:Plibusb_device_handle; interface_number:cint):cint;extdecl;
+  libusb_release_interface : function (dev:Plibusb_device_handle; interface_number:cint):cint;extdecl;
 
-function libusb_open_device_with_vid_pid(ctx:Plibusb_context; vendor_id:cuint16; product_id:cuint16):Plibusb_device_handle;extdecl;external;
+  libusb_open_device_with_vid_pid : function (ctx:Plibusb_context; vendor_id:cuint16; product_id:cuint16):Plibusb_device_handle;extdecl;
 
-function libusb_set_interface_alt_setting(dev:Plibusb_device_handle; interface_number:cint; alternate_setting:cint):cint;extdecl;external;
-function libusb_clear_halt(dev:Plibusb_device_handle; endpoint:cuchar):cint;extdecl;external;
-function libusb_reset_device(dev:Plibusb_device_handle):cint;extdecl;external;
+  libusb_set_interface_alt_setting : function (dev:Plibusb_device_handle; interface_number:cint; alternate_setting:cint):cint;extdecl;
+  libusb_clear_halt : function (dev:Plibusb_device_handle; endpoint:cuchar):cint;extdecl;
+  libusb_reset_device : function (dev:Plibusb_device_handle):cint;extdecl;
 
-function libusb_kernel_driver_active(dev:Plibusb_device_handle; interface_number:cint):cint;extdecl;external;
-function libusb_detach_kernel_driver(dev:Plibusb_device_handle; interface_number:cint):cint;extdecl;external;
-function libusb_attach_kernel_driver(dev:Plibusb_device_handle; interface_number:cint):cint;extdecl;external;
+  libusb_kernel_driver_active : function (dev:Plibusb_device_handle; interface_number:cint):cint;extdecl;
+  libusb_detach_kernel_driver : function (dev:Plibusb_device_handle; interface_number:cint):cint;extdecl;
+  libusb_attach_kernel_driver : function (dev:Plibusb_device_handle; interface_number:cint):cint;extdecl;
 
 (* async I/O *)
 
@@ -914,10 +912,11 @@ Function libusb_control_transfer_get_setup(transfer:Plibusb_transfer):Plibusb_co
  *)
 Procedure libusb_fill_control_setup(Out buffer;bmRequestType:cuint8;bRequest:cuint8;wValue:cuint16;wIndex:cuint16;wLength:cuint16);
 
-function libusb_alloc_transfer(iso_packets:cint):Plibusb_transfer;extdecl;external;
-function libusb_submit_transfer(transfer:Plibusb_transfer):cint;extdecl;external;
-function libusb_cancel_transfer(transfer:Plibusb_transfer):cint;extdecl;external;
-procedure libusb_free_transfer(transfer:Plibusb_transfer);extdecl;external;
+var
+  libusb_alloc_transfer : function (iso_packets:cint):Plibusb_transfer;extdecl;
+  libusb_submit_transfer : function (transfer:Plibusb_transfer):cint;extdecl;
+  libusb_cancel_transfer : function (transfer:Plibusb_transfer):cint;extdecl;
+  libusb_free_transfer : procedure (transfer:Plibusb_transfer);extdecl;
 
 (** \ingroup asyncio
  * Helper function to populate the required \ref libusb_transfer fields
@@ -1076,9 +1075,10 @@ Function libusb_get_iso_packet_buffer_simple(transfer:Plibusb_transfer;packet:cu
 
 (* sync I/O *)
 
-function libusb_control_transfer  (dev_handle:Plibusb_device_handle; request_type:cuint8; bRequest:cuint8; wValue:cuint16; wIndex:cuint16; data:pcuchar; WLength:cuint16; timeout:cuint):cint;extdecl;external;
-function libusb_bulk_transfer     (dev_handle:Plibusb_device_handle; endpoint:cuchar; data:pcuchar; length:cint; out actual_length:cint;timeout:cuint):cint;extdecl;external;
-function libusb_interrupt_transfer(dev_handle:Plibusb_device_handle; endpoint:cuchar; data:pcuchar; length:cint; out actual_length:cint;timeout:cuint):cint;extdecl;external;
+var
+  libusb_control_transfer : function (dev_handle:Plibusb_device_handle; request_type:cuint8; bRequest:cuint8; wValue:cuint16; wIndex:cuint16; data:pcuchar; WLength:cuint16; timeout:cuint):cint;extdecl;
+  libusb_bulk_transfer : function (dev_handle:Plibusb_device_handle; endpoint:cuchar; data:pcuchar; length:cint; out actual_length:cint;timeout:cuint):cint;extdecl;
+  libusb_interrupt_transfer : function (dev_handle:Plibusb_device_handle; endpoint:cuchar; data:pcuchar; length:cint; out actual_length:cint;timeout:cuint):cint;extdecl;
 
 (** \ingroup desc
  * Retrieve a descriptor from the default control pipe.
@@ -1110,26 +1110,27 @@ Function libusb_get_descriptor(dev:Plibusb_device_handle;desc_type:cuint8;desc_i
  *)
 Function libusb_get_string_descriptor(dev:Plibusb_device_handle;desc_index:cuint8;langid:cuint16;data:pcuchar;length:cint):cint;
 
-Function libusb_get_string_descriptor_ascii(dev:Plibusb_device_handle;desc_index:cuint8;data:pcuchar;length:cint):cint;extdecl;external;
+var
+  libusb_get_string_descriptor_ascii : function (dev:Plibusb_device_handle;desc_index:cuint8;data:pcuchar;length:cint):cint;extdecl;
 
 (* polling and timeouts *)
 
-function libusb_try_lock_events(ctx:Plibusb_context):cint;extdecl;external;
-procedure libusb_lock_events(ctx:Plibusb_context);extdecl;external;
-procedure libusb_unlock_events(ctx:Plibusb_context);extdecl;external;
-function libusb_event_handling_ok(ctx:Plibusb_context):cint;extdecl;external;
-function libusb_event_handler_active(ctx:Plibusb_context):cint;extdecl;external;
-procedure libusb_lock_event_waiters(ctx:Plibusb_context);extdecl;external;
-procedure libusb_unlock_event_waiters(ctx:Plibusb_context);extdecl;external;
-function libusb_wait_for_event(ctx:Plibusb_context; tv:Ptimeval):cint;extdecl;external;
+  libusb_try_lock_events : function (ctx:Plibusb_context):cint;extdecl;
+  libusb_lock_events : procedure (ctx:Plibusb_context);extdecl;
+  libusb_unlock_events : procedure(ctx:Plibusb_context);extdecl;
+  libusb_event_handling_ok : function (ctx:Plibusb_context):cint;extdecl;
+  libusb_event_handler_active : function (ctx:Plibusb_context):cint;extdecl;
+  libusb_lock_event_waiters : procedure(ctx:Plibusb_context);extdecl;
+  libusb_unlock_event_waiters : procedure (ctx:Plibusb_context);extdecl;
+  libusb_wait_for_event : function (ctx:Plibusb_context; tv:Ptimeval):cint;extdecl;
 
-function libusb_handle_events_timeout(ctx:Plibusb_context; tv:Ptimeval):cint;extdecl;external;
-function libusb_handle_events_timeout_completed(ctx:Plibusb_context; tv:Ptimeval; completed:Pcint):cint;extdecl;external;
-function libusb_handle_events(ctx:Plibusb_context):cint;extdecl;external;
-function libusb_handle_events_completed(ctx:Plibusb_context; completed:Pcint):cint;extdecl;external;
-function libusb_handle_events_locked(ctx:Plibusb_context; tv:Ptimeval):cint;extdecl;external;
-function libusb_pollfds_handle_timeouts(ctx:Plibusb_context):cint;extdecl;external;
-function libusb_get_next_timeout(ctx:Plibusb_context; tv:Ptimeval):cint;extdecl;external;
+  libusb_handle_events_timeout : function (ctx:Plibusb_context; tv:Ptimeval):cint;extdecl;
+  libusb_handle_events_timeout_completed : function (ctx:Plibusb_context; tv:Ptimeval; completed:Pcint):cint;extdecl;
+  libusb_handle_events : function (ctx:Plibusb_context):cint;extdecl;
+  libusb_handle_events_completed : function (ctx:Plibusb_context; completed:Pcint):cint;extdecl;
+  libusb_handle_events_locked : function (ctx:Plibusb_context; tv:Ptimeval):cint;extdecl;
+  libusb_pollfds_handle_timeouts : function (ctx:Plibusb_context):cint;extdecl;
+  libusb_get_next_timeout : function (ctx:Plibusb_context; tv:Ptimeval):cint;extdecl;
 
 type
   PPlibusb_pollfd = ^Plibusb_pollfd;
@@ -1170,10 +1171,13 @@ type
    *)
   libusb_pollfd_removed_cb = procedure (fd:cint; user_data:pointer);extdecl;
 
-function libusb_get_pollfds(ctx:Plibusb_context):PPlibusb_pollfd;extdecl;external;     (* Const before type ignored *)
-procedure libusb_set_pollfd_notifiers(ctx:Plibusb_context; added_cb:libusb_pollfd_added_cb; removed_cb:libusb_pollfd_removed_cb; user_data:pointer);extdecl;external;
+var
+  libusb_get_pollfds : function (ctx:Plibusb_context):PPlibusb_pollfd;extdecl;     (* Const before type ignored *)
+  libusb_set_pollfd_notifiers : procedure (ctx:Plibusb_context; added_cb:libusb_pollfd_added_cb; removed_cb:libusb_pollfd_removed_cb; user_data:pointer);extdecl;
 
 Implementation
+
+Uses SysUtils,DynLibs;
 
 Function libusb_cpu_to_le16(x:cuint16) : cuint16;
 Begin
@@ -1343,6 +1347,97 @@ Begin
     cuint8(LIBUSB_REQUEST_GET_DESCRIPTOR), cuint16(cuint8(LIBUSB_DT_STRING) shl 8) or desc_index,
     langid, data, cuint16(length), 1000);
 End;
+
+(****************************************************************************)
+(* Dynamic Linking                                                          *)
+(****************************************************************************)
+
+Var dllHandle : TLibHandle = 0;
+
+Procedure initDLL;
+Begin
+{$IFDEF WINDOWS}
+  dllHandle := LoadLibrary('libusb-1.0.dll');
+{$ELSE}
+  dllHandle := LoadLibrary('libusb-1.0.so');
+{$ENDIF}
+  if dllHandle = 0 then
+    raise Exception.Create('Couldn''t load dynamic library libusb.');
+  pointer(libusb_init) := GetProcedureAddress(dllHandle, 'libusb_init');
+  pointer(libusb_exit) := GetProcedureAddress(dllHandle, 'libusb_exit');
+  pointer(libusb_set_debug) := GetProcedureAddress(dllHandle, 'libusb_set_debug');
+  pointer(libusb_get_version) := GetProcedureAddress(dllHandle, 'libusb_get_version');
+  pointer(libusb_has_capability) := GetProcedureAddress(dllHandle, 'libusb_has_capability');
+  pointer(libusb_error_name) := GetProcedureAddress(dllHandle, 'libusb_error_name');
+  pointer(libusb_get_device_list) := GetProcedureAddress(dllHandle, 'libusb_get_device_list');
+  pointer(libusb_free_device_list) := GetProcedureAddress(dllHandle, 'libusb_free_device_list');
+  pointer(libusb_ref_device) := GetProcedureAddress(dllHandle, 'libusb_ref_device');
+  pointer(libusb_unref_device) := GetProcedureAddress(dllHandle, 'libusb_unref_device');
+  pointer(libusb_get_configuration) := GetProcedureAddress(dllHandle, 'libusb_get_configuration');
+  pointer(libusb_get_device_descriptor) := GetProcedureAddress(dllHandle, 'libusb_get_device_descriptor');
+  pointer(libusb_get_active_config_descriptor) := GetProcedureAddress(dllHandle, 'libusb_get_active_config_descriptor');
+  pointer(libusb_get_config_descriptor) := GetProcedureAddress(dllHandle, 'libusb_get_config_descriptor');
+  pointer(libusb_get_config_descriptor_by_value) := GetProcedureAddress(dllHandle, 'libusb_get_config_descriptor_by_value');
+  pointer(libusb_free_config_descriptor) := GetProcedureAddress(dllHandle, 'libusb_free_config_descriptor');
+  pointer(libusb_get_bus_number) := GetProcedureAddress(dllHandle, 'libusb_get_bus_number');
+  pointer(libusb_get_port_number) := GetProcedureAddress(dllHandle, 'libusb_get_port_number');
+  pointer(libusb_get_parent) := GetProcedureAddress(dllHandle, 'libusb_get_parent');
+  pointer(libusb_get_port_path) := GetProcedureAddress(dllHandle, 'libusb_get_port_path');
+  pointer(libusb_get_device_address) := GetProcedureAddress(dllHandle, 'libusb_get_device_address');
+  pointer(libusb_get_device_speed) := GetProcedureAddress(dllHandle, 'libusb_get_device_speed');
+  pointer(libusb_get_max_packet_size) := GetProcedureAddress(dllHandle, 'libusb_get_max_packet_size');
+  pointer(libusb_get_max_iso_packet_size) := GetProcedureAddress(dllHandle, 'libusb_get_max_iso_packet_size');
+  pointer(libusb_open) := GetProcedureAddress(dllHandle, 'libusb_open');
+  pointer(libusb_close) := GetProcedureAddress(dllHandle, 'libusb_close');
+  pointer(libusb_get_device) := GetProcedureAddress(dllHandle, 'libusb_get_device');
+  pointer(libusb_set_configuration) := GetProcedureAddress(dllHandle, 'libusb_set_configuration');
+  pointer(libusb_claim_interface) := GetProcedureAddress(dllHandle, 'libusb_claim_interface');
+  pointer(libusb_release_interface) := GetProcedureAddress(dllHandle, 'libusb_release_interface');
+  pointer(libusb_open_device_with_vid_pid) := GetProcedureAddress(dllHandle, 'libusb_open_device_with_vid_pid');
+  pointer(libusb_set_interface_alt_setting) := GetProcedureAddress(dllHandle, 'libusb_set_interface_alt_setting');
+  pointer(libusb_clear_halt) := GetProcedureAddress(dllHandle, 'libusb_clear_halt');
+  pointer(libusb_reset_device) := GetProcedureAddress(dllHandle, 'libusb_reset_device');
+  pointer(libusb_kernel_driver_active) := GetProcedureAddress(dllHandle, 'libusb_kernel_driver_active');
+  pointer(libusb_detach_kernel_driver) := GetProcedureAddress(dllHandle, 'libusb_detach_kernel_driver');
+  pointer(libusb_attach_kernel_driver) := GetProcedureAddress(dllHandle, 'libusb_attach_kernel_driver');
+  pointer(libusb_alloc_transfer) := GetProcedureAddress(dllHandle, 'libusb_alloc_transfer');
+  pointer(libusb_submit_transfer) := GetProcedureAddress(dllHandle, 'libusb_submit_transfer');
+  pointer(libusb_cancel_transfer) := GetProcedureAddress(dllHandle, 'libusb_cancel_transfer');
+  pointer(libusb_free_transfer) := GetProcedureAddress(dllHandle, 'libusb_free_transfer');
+  pointer(libusb_control_transfer) := GetProcedureAddress(dllHandle, 'libusb_control_transfer');
+  pointer(libusb_bulk_transfer) := GetProcedureAddress(dllHandle, 'libusb_bulk_transfer');
+  pointer(libusb_interrupt_transfer) := GetProcedureAddress(dllHandle, 'libusb_interrupt_transfer');
+  pointer(libusb_get_string_descriptor_ascii) := GetProcedureAddress(dllHandle, 'libusb_get_string_descriptor_ascii');
+  pointer(libusb_try_lock_events) := GetProcedureAddress(dllHandle, 'libusb_try_lock_events');
+  pointer(libusb_lock_events) := GetProcedureAddress(dllHandle, 'libusb_lock_events');
+  pointer(libusb_unlock_events) := GetProcedureAddress(dllHandle, 'libusb_unlock_events');
+  pointer(libusb_event_handling_ok) := GetProcedureAddress(dllHandle, 'libusb_event_handling_ok');
+  pointer(libusb_event_handler_active) := GetProcedureAddress(dllHandle, 'libusb_event_handler_active');
+  pointer(libusb_lock_event_waiters) := GetProcedureAddress(dllHandle, 'libusb_lock_event_waiters');
+  pointer(libusb_unlock_event_waiters) := GetProcedureAddress(dllHandle, 'libusb_unlock_event_waiters');
+  pointer(libusb_wait_for_event) := GetProcedureAddress(dllHandle, 'libusb_wait_for_event');
+  pointer(libusb_handle_events_timeout) := GetProcedureAddress(dllHandle, 'libusb_handle_events_timeout');
+  pointer(libusb_handle_events_timeout_completed) := GetProcedureAddress(dllHandle, 'libusb_handle_events_timeout_completed');
+  pointer(libusb_handle_events) := GetProcedureAddress(dllHandle, 'libusb_handle_events');
+  pointer(libusb_handle_events_completed) := GetProcedureAddress(dllHandle, 'libusb_handle_events_completed');
+  pointer(libusb_handle_events_locked) := GetProcedureAddress(dllHandle, 'libusb_handle_events_locked');
+  pointer(libusb_pollfds_handle_timeouts) := GetProcedureAddress(dllHandle, 'libusb_pollfds_handle_timeouts');
+  pointer(libusb_get_next_timeout) := GetProcedureAddress(dllHandle, 'libusb_get_next_timeout');
+  pointer(libusb_get_pollfds) := GetProcedureAddress(dllHandle, 'libusb_get_pollfds');
+  pointer(libusb_set_pollfd_notifiers) := GetProcedureAddress(dllHandle, 'libusb_set_pollfd_notifiers');
+End;
+
+Procedure deinitDLL;
+Begin
+  if dllHandle <> 0 then
+    FreeLibrary(dllHandle);
+End;
+
+Initialization
+  initDLL;
+
+Finalization
+  deinitDLL;
 
 End.
 

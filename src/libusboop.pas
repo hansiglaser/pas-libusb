@@ -446,7 +446,7 @@ End;
 
 Class Function TLibUsbContext.GetVersion : Plibusb_version;
 Begin
-  Result := libusb_get_version;
+  Result := libusb_get_version();
 End;
 
 Class Function TLibUsbContext.HasCapability(Capability:Cardinal) : Boolean;
