@@ -32,7 +32,11 @@ Program Test3ControlAsync;
 
 {$mode objfpc}{$H+}
 
-Uses SysUtils,LibUsb,LibUsbOop;
+Uses
+  {$IFDEF UNIX}
+  CThreads,
+  {$ENDIF}
+  LibUsb,LibUsbOop,SysUtils;
 
 Const
   DevVID = $0547;

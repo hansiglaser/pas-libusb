@@ -32,7 +32,11 @@ Program Test2ControlSync;
 
 {$mode objfpc}{$H+}
 
-Uses SysUtils,LibUsb,LibUsbOop;
+Uses
+  {$IFDEF UNIX}
+  CThreads,
+  {$ENDIF}
+  LibUsb,LibUsbOop,SysUtils;
 
 Const DevVID = $0547;
 //      DevPID = $2131;

@@ -56,7 +56,11 @@ Program TestFirmware;
 
 {$mode objfpc}{$H+}
 
-Uses Classes,SysUtils,MyDevice,LibUsbOop,LibUsbUtil;
+Uses
+  {$IFDEF UNIX}
+  CThreads,
+  {$ENDIF}
+  Classes,SysUtils,MyDevice,LibUsbOop,LibUsbUtil;
 
 Var Context   : TLibUsbContext;
     TheDevice : TMyDevice;

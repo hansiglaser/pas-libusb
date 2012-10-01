@@ -32,7 +32,11 @@ Program Test1Library;
 
 {$mode objfpc}{$H+}
 
-Uses LibUsb,LibUsbOop,SysUtils;
+Uses
+  {$IFDEF UNIX}
+  CThreads,
+  {$ENDIF}
+  LibUsb,LibUsbOop,SysUtils;
 
 Const SpeedName : Array[0..4] of String = (
        'Unknown',
