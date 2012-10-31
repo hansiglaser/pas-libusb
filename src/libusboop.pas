@@ -173,6 +173,7 @@ Type
     Function  FindEndpoint(MatchClass:TLibUsbEndpointMatchClass;CFree:Boolean=True) : Plibusb_endpoint_descriptor;
     Function  FindEndpoint(MatchFunc :TLibUsbEndpointMatchFunc;Data:Pointer       ) : Plibusb_endpoint_descriptor;
     Function  FindEndpoint(bEndpointAddress:Byte                                  ) : Plibusb_endpoint_descriptor;
+    property Descriptor : Plibusb_interface_descriptor read FInterface;
   End;
 
   TLibUsbTransfer = class;
@@ -187,6 +188,7 @@ Type
     Constructor Create(ADevice:TLibUsbDevice;AEPAddr:Byte);
     Destructor Destroy; override;
     Procedure ClearHalt;
+    property Addr : Byte read FEPAddr;
   End;
 
   { TLibUsbDeviceEndpoint }
@@ -210,7 +212,7 @@ Type
 
   TLibUsbDeviceControlEndpoint = class(TLibUsbDeviceEndpoint)
     Constructor Create(ADevice:TLibUsbDevice); overload;
-    Function  ControlMsg(RequestType:Byte;Request:Byte;Value:Word;Index:Word;Const Buf;Length,Timeout:LongInt):LongInt;
+    Function  ControlMsg(RequestType:Byte;Request:Byte;Value:Word;Index:Word;Var Buf;Length,Timeout:LongInt):LongInt;
     Function  ControlMsg(RequestType:Byte;Request:Byte;Value:Word;Index:Word;Buf:TDynByteArray;Timeout:LongInt):LongInt;
     Function  ControlMsg(RequestType:Byte;Request:Byte;Value:Word;Index:Word;Length,Timeout:LongInt):TDynByteArray;
     Function  ControlMsg(RequestType:Byte;Request:Byte;Value:Word;Index:Word;Timeout:LongInt):LongInt;
@@ -1135,7 +1137,7 @@ Begin
   inherited Create(ADevice,0);
 End;
 
-Function TLibUsbDeviceControlEndpoint.ControlMsg(RequestType:Byte;Request:Byte;Value:Word;Index:Word;Const Buf;Length,Timeout:LongInt):LongInt;
+Function TLibUsbDeviceControlEndpoint.ControlMsg(RequestType:Byte;Request:Byte;Value:Word;Index:Word;Var Buf;Length,Timeout:LongInt):LongInt;
 Begin
   Result := libusb_control_transfer(FDevice.Handle,RequestType,Request,Value,Index,@Buf,Length,Timeout);
 End;

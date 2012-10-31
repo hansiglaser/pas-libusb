@@ -58,6 +58,12 @@ Type
     Constructor Create(AIntfNum,AAltSetting:Byte);
   End;
 
+Function MatchEPBulkIn (EP:Plibusb_endpoint_descriptor;Data:Pointer) : Boolean;
+Function MatchEPBulkOut(EP:Plibusb_endpoint_descriptor;Data:Pointer) : Boolean;
+Function MatchEPIntrIn (EP:Plibusb_endpoint_descriptor;Data:Pointer) : Boolean;
+Function MatchEPIntrOut(EP:Plibusb_endpoint_descriptor;Data:Pointer) : Boolean;
+
+Type
   { TLibUsbDeviceWithFirmware }
 
   TLibUsbDeviceWithFirmware = class(TLibUsbDevice)
@@ -112,6 +118,30 @@ Begin
   inherited Create;
   FIntfNum    := AIntfNum;
   FAltSetting := AAltSetting;
+End;
+
+Function MatchEPBulkIn (EP:Plibusb_endpoint_descriptor;Data:Pointer) : Boolean;
+Begin
+  Result := (EP^.bEndpointAddress and LIBUSB_ENDPOINT_DIR_MASK  = LIBUSB_ENDPOINT_IN) and
+            (EP^.bmAttributes     and LIBUSB_TRANSFER_TYPE_MASK = LIBUSB_TRANSFER_TYPE_BULK);
+End;
+
+Function MatchEPBulkOut(EP:Plibusb_endpoint_descriptor;Data:Pointer) : Boolean;
+Begin
+  Result := (EP^.bEndpointAddress and LIBUSB_ENDPOINT_DIR_MASK  = LIBUSB_ENDPOINT_OUT) and
+            (EP^.bmAttributes     and LIBUSB_TRANSFER_TYPE_MASK = LIBUSB_TRANSFER_TYPE_BULK);
+End;
+
+Function MatchEPIntrIn (EP:Plibusb_endpoint_descriptor;Data:Pointer) : Boolean;
+Begin
+  Result := (EP^.bEndpointAddress and LIBUSB_ENDPOINT_DIR_MASK  = LIBUSB_ENDPOINT_IN) and
+            (EP^.bmAttributes     and LIBUSB_TRANSFER_TYPE_MASK = LIBUSB_TRANSFER_TYPE_INTERRUPT);
+End;
+
+Function MatchEPIntrOut(EP:Plibusb_endpoint_descriptor;Data:Pointer) : Boolean;
+Begin
+  Result := (EP^.bEndpointAddress and LIBUSB_ENDPOINT_DIR_MASK  = LIBUSB_ENDPOINT_OUT) and
+            (EP^.bmAttributes     and LIBUSB_TRANSFER_TYPE_MASK = LIBUSB_TRANSFER_TYPE_INTERRUPT);
 End;
 
 { TLibUsbDeviceWithFirmware }
