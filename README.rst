@@ -82,6 +82,16 @@ Platform
 This project was compiled with `FreePascal <http://www.freepascal.org/>`_
 2.6.0 on Linux.
 
+The main work was performed on a Debian GNU/Linux AMD64 machine with
+libusb-1.0 version 1.0.12.
+
+A user successfully used pas-libusb on a Raspberry Pi (ARM processor) with
+the Raspbian Debian GNU/Linux based distribution. Although the libusb-1.0
+package version 1.0.9 originally installed didn't work (due to lacking the
+two functions libusb_get_port_number() and libusb_get_port_path()), he
+manually upgraded from libusbx sources to version 1.0.14 which now works.
+The same user also reports libusb-1.0 1.0.12 on Linux Mint i386 to work.
+
 Other Projects
 --------------
 
