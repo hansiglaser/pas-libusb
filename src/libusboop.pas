@@ -1066,6 +1066,7 @@ Begin
   if not IsKernelDriverActive then
     ELibUsb.CreateFmt(Ret,'Couldn''t claim interface %d but there is no kernel driver.',[FInterface]);
   { detach driver }
+  WriteLn('Detaching kernel driver');
   DetachKernelDriver;
   { claim again }
   ELibUsb.Check(libusb_claim_interface(FDevice.FHandle,FIntfNum),'2nd Claim');
