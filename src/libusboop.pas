@@ -1503,13 +1503,13 @@ End;
 
 Constructor ELibUsb.Create(AError : Integer; Const Msg : String);
 Begin
-  inherited Create(Msg + ': ' + PChar(libusb_error_name(AError)));
+  inherited Create(Msg + ': ' + PChar(libusb_error_name(AError)) + ': ' + PChar(libusb_strerror(AError)));
   FError := AError;
 End;
 
 Constructor ELibUsb.CreateFmt(AError : Integer; Const Msg : String; Const Args : Array Of Const);
 Begin
-  inherited CreateFmt(Msg + ': ' + PChar(libusb_error_name(AError)),Args);
+  inherited CreateFmt(Msg + ': ' + PChar(libusb_error_name(AError)) + ': ' + PChar(libusb_strerror(AError)),Args);
   FError := AError;
 End;
 
@@ -1529,7 +1529,7 @@ End;
 
 Function ELibUsb.GetErrorStr : PChar;
 Begin
-  Result := PChar(libusb_error_name(FError));
+  Result := PChar(PChar(libusb_error_name(FError)) + ': ' + PChar(libusb_strerror(FError)));
 End;
 
 End.

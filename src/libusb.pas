@@ -821,6 +821,7 @@ procedure libusb_set_debug(ctx:Plibusb_context; level:cint);extdecl;external;
 function libusb_get_version:Plibusb_version;extdecl;external; (* Const before type ignored *)
 function libusb_has_capability(capability:cuint32):cint;extdecl;external; (* Const before type ignored *)
 function libusb_error_name(errcode:cint):pcchar;extdecl;external;
+function libusb_strerror(errcode:cint):pcchar;extdecl;external;
 
 function libusb_get_device_list(ctx:Plibusb_context; out list:PPlibusb_device):cssize;extdecl;external;
 procedure libusb_free_device_list(list:PPlibusb_device; unref_devices:cint);extdecl;external;
