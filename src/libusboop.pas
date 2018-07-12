@@ -174,6 +174,8 @@ Type
     Function  FindEndpoint(MatchFunc :TLibUsbEndpointMatchFunc;Data:Pointer       ) : Plibusb_endpoint_descriptor;
     Function  FindEndpoint(bEndpointAddress:Byte                                  ) : Plibusb_endpoint_descriptor;
     property Descriptor : Plibusb_interface_descriptor read FInterface;
+    property IntfNum    : Byte read FIntfNum;
+    property AltSetting : Byte read FAltSetting;
   End;
 
   TLibUsbTransfer = class;
