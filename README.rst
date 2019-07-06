@@ -1,7 +1,7 @@
 pas-libusb -- Object Oriented wrapper for libusb and libusbx
 ============================================================
 
-`libusb <http://www.libusb.org/>`_ and its fork `libusbx
+`libusb <https://libusb.info/>`_ and its fork `libusbx
 <http://libusbx.sourceforge.net/>`_ provide access to USB devices in user
 space.
 
