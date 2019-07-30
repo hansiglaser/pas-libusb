@@ -27,7 +27,7 @@ Type
   TLibUsbDeviceEZUSB = class(TLibUsbDevice)
   public
     Function ReadMem (Pos:LongInt;Out   Data;Length:LongInt):LongInt;
-    Function WriteMem(Pos:LongInt;Const Data;Length:LongInt):LongInt;
+    Function WriteMem(Pos:LongInt;Var   Data;Length:LongInt):LongInt;
     Function ResetCPU(ResetBit:Byte) : LongInt;
     Function LoadMem(HexRecord:PIntelHexRecord):LongInt;
     Procedure DownloadFirmware(AFirmware:String;StartImmediately:Boolean=true);
@@ -39,7 +39,7 @@ Const ANCHOR_USB_CONFIG    = 1;       { bConfigurationValue }
       CPUCS_8051RESET      = $01;     { 1: reset 8051, 0: run }
 
 Implementation
-Uses SysUtils,Errors;
+Uses SysUtils;
 
 { TLibUsbDeviceEZUSB }
 
@@ -73,7 +73,7 @@ End;
  * returns: >0 .... count of bytes written
  *          <0 .... error number
  *)
-Function TLibUsbDeviceEZUSB.WriteMem(Pos:LongInt;Const Data;Length:LongInt) : LongInt;
+Function TLibUsbDeviceEZUSB.WriteMem(Pos:LongInt;Var Data;Length:LongInt) : LongInt;
 Begin
   Result := FControl.ControlMsg(
     { bmRequestType } LIBUSB_ENDPOINT_Out or LIBUSB_REQUEST_TYPE_VENDOR or LIBUSB_RECIPIENT_DEVICE,

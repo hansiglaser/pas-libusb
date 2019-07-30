@@ -28,7 +28,7 @@ Unit USB;
 Interface
 
 Uses
-  Classes, SysUtils, Baseunix, LibUSB;
+  Classes, SysUtils, LibUSB;
 
 (*****************************************************************************)
 (**  Procedural Interface  ***************************************************)
