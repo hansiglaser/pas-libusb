@@ -1,13 +1,24 @@
+!!! PLEASE USE GIT BRANCH "libusb-1.0" !!!
+==========================================
+
+The code in the "master" branch (you are looking currently) supports version
+0.1 of libusb. However, this is heavily outdated and not supported any more.
+
+Please switch to branch "libusb-1.0" for the latest and greatest Pascal
+bindings for the current version of `libusb <https://libusb.info/>`_.
+
+
 pas-libusb -- Object Oriented wrapper for LibUSB
 ================================================
 
-`libusb <http://www.libusb.org/>`_ provides access to USB devices in user space.
+`libusb 0.1 <http://www.libusb.org/>`_ provides access to USB devices in user space.
 
 This project provides Pascal header translations plus an object-oriented
 wrapper for convenience.
 
-Note: Currently only the legacy version 0.1 of libusb is supported. The new
-version 1.0 introduced major changes in the API and will be supported later.
+Note: In the current branch only the legacy version 0.1 of libusb is
+supported.  The new version 1.0 introduced major changes in the API and is
+supported in branch "libusb-1.0".
 
 License
 -------
