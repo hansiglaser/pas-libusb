@@ -79,7 +79,7 @@ Begin
           Begin
             Write(', port path from HCD: ',PortPath[0]);
             For J := 1 to Length(PortPath)-1 do
-              Write('->',PortPath[I]);
+              Write('->',PortPath[J]);
           End;
         Write(', Speed: ');
         if Speed < High(SpeedName) then
