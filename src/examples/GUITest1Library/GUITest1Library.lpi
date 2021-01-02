@@ -63,7 +63,7 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value=".."/>
+      <OtherUnitFiles Value="..\.."/>
       <UnitOutputDirectory Value="output"/>
     </SearchPaths>
     <Parsing>
