@@ -39,7 +39,7 @@
       <Unit1>
         <Filename Value="MainUnit.pas"/>
         <IsPartOfProject Value="True"/>
-        <ComponentName Value="Form1"/>
+        <ComponentName Value="MainForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
       </Unit1>
@@ -59,11 +59,11 @@
     <Version Value="11"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="exeOutput/GUITest1Library"/>
+      <Filename Value="exeOutput\GUITest1Library"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
-      <OtherUnitFiles Value="pas-libusb"/>
+      <OtherUnitFiles Value=".."/>
       <UnitOutputDirectory Value="output"/>
     </SearchPaths>
     <Parsing>
