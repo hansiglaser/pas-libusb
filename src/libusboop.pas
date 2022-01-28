@@ -27,7 +27,7 @@ Unit LibUsbOop;
 Interface
 
 Uses
-  Classes, SysUtils, LibUsb;
+  Classes, SysUtils, LibUsb{, PasGpibUtils};
 
 Type
 
@@ -1190,14 +1190,22 @@ End;
 
 Function TLibUsbBulkOutEndpoint.Send(Const Buf;Length,Timeout:LongInt):LongInt;
 Begin
+//  WriteLn('Send: Length = ',Length);
+//  Dump(Buf, Length);
   Result := libusb_bulk_transfer(FDevice.Handle,FEPAddr,@Buf,Length,Length,Timeout);
+//  if Result < 0 then
+//    WriteLn('Send: Result = ',Result,' (',PChar(libusb_error_name(Result)),'), Length = ',Length);
   if Result = 0 then Result := Length;
 End;
 
 Function TLibUsbBulkOutEndpoint.Send(Buf:TDynByteArray;Timeout:LongInt):LongInt;
 Var Transferred : Integer;
 Begin
+//  WriteLn('Send: Length = ',Length(Buf));
+//  Dump(Buf[0], Length(Buf));
   Result := libusb_bulk_transfer(FDevice.Handle,FEPAddr,@(Buf[0]),Length(Buf),Transferred,Timeout);
+//  if Result < 0 then
+//    WriteLn('Send: Result = ',Result,' (',PChar(libusb_error_name(Result)),'), Transferred = ',Transferred);
   if Result = 0 then Result := Transferred;
 End;
 
@@ -1206,15 +1214,26 @@ End;
 Function TLibUsbBulkInEndpoint.Recv(Out Buf;Length:LongInt;Timeout:LongInt):LongInt;
 Begin
   Result := libusb_bulk_transfer(FDevice.Handle,FEPAddr,@Buf,Length,Length,Timeout);
+//  if Result < 0 then
+//    WriteLn('Recv: Result = ',Result,' (',PChar(libusb_error_name(Result)),'), Length = ', Length);
+//  if (Result = 0) and (Length > 0) then
+//    Dump(Buf, Length);
   if Result = 0 then Result := Length;
 End;
 
 Function TLibUsbBulkInEndpoint.Recv(Length:LongInt;Timeout:LongInt):TDynByteArray;
+Var Ret : LongInt;
 Begin
   // allocate buffer
   SetLength(Result,Length);
+  Ret := libusb_bulk_transfer(FDevice.Handle,FEPAddr,@(Result[0]),Length,Length,Timeout);
+//  if Ret < 0 then
+//    WriteLn('Recv: Ret = ',Ret,' (',PChar(libusb_error_name(Ret)),'), Length = ', Length);
+  ELibUsb.Check(Ret,'Recv');
+//  if (Ret = 0) and (Length > 0) then
+//    Dump(Result[0], Length);
   // set buffer length to actual number of received bytes
-  SetLength(Result,ELibUsb.Check(libusb_bulk_transfer(FDevice.Handle,FEPAddr,@(Result[0]),Length,Length,Timeout),'Recv'));
+  SetLength(Result,Length);
 End;
 
 { TLibUsbInterruptOutEndpoint }
